@@ -4,6 +4,8 @@ const send_api = require('../APIs/send_api');
 const test_api = require('../APIs/test_api');
 const group_api = require('../APIs/group_api');
 const { log_action } = require('../debug/logger');
+const archive_chat_api = require('../APIs/archive_chat_api');
+const last_message_in_group_api = require('../APIs/last_message_in_group_api');
 
 const app = express();
 app.use(express.json());
@@ -19,10 +21,16 @@ log_action('SERVER_START', 'Mounting API router');
 app.use(send_api(client, get_client_ready));
 app.use(test_api);
 app.use(group_api(client, get_client_ready));
+app.use(archive_chat_api(client, get_client_ready));
+app.use(last_message_in_group_api(client, get_client_ready));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   log_action('SERVER_LISTEN', `HTTP API listening on http://localhost:${port}`);
   console.log(`🚀 HTTP API listening on http://localhost:${port}`);
-  console.log('   → POST /send   { "number": "<recipient>", "message": "<text>" }');
+  console.log('   → POST /send                 { "number": "<recipient>", "message": "<text>" }');
+  console.log('   → GET  /test');
+  console.log('   → GET  /groups');
+  console.log('   → POST /archive_chat          { "group_id": "<group_id>" }');
+  console.log('   → POST /last_message_in_group { "group_id": "<group_id>" }');
 });
