@@ -2,6 +2,7 @@ const express = require('express');
 const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const send_api = require('../APIs/send_api');
+const test_api = require('../APIs/test_api');
 const { logAction } = require('../debug/logger');
 
 const app = express();
@@ -49,6 +50,7 @@ client.initialize();
 // Mount the API router (paths are defined inside the API module)
 logAction('SERVER_START', 'Mounting API router');
 app.use(send_api(client, () => clientReady));
+app.use(test_api);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
