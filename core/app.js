@@ -2,6 +2,7 @@ const express = require('express');
 const { create_whatsapp_client } = require('../services/whatsapp_client_service');
 const send_api = require('../APIs/send_api');
 const test_api = require('../APIs/test_api');
+const group_api = require('../APIs/group_api');
 const { log_action } = require('../debug/logger');
 
 const app = express();
@@ -17,6 +18,7 @@ client.initialize();
 log_action('SERVER_START', 'Mounting API router');
 app.use(send_api(client, get_client_ready));
 app.use(test_api);
+app.use(group_api(client, get_client_ready));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
