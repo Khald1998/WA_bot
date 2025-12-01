@@ -14,7 +14,7 @@ module.exports = (client, get_client_ready) => {
       });
     }
     try {
-      const group_names = await group_service.get_group_names();
+      const group_names = await group_service.get_group_names(client);
       log_action('API_GROUPS_SUCCESS', `Returned ${group_names.length} group(s)`);
       res.json({ groups: group_names });
     } catch (error) {
