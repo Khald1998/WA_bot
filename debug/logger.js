@@ -1,17 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOGS_DIR = path.join(__dirname, '../Logs');
+const logs_dir = path.join(__dirname, '../Logs');
 
-function logAction(action, details = '') {
-    const logFile = path.join(LOGS_DIR, `${getDateString()}.log`);
-    const logEntry = `[${new Date().toISOString()}] ACTION: ${action}${details ? ' | ' + details : ''}\n`;
-    fs.appendFileSync(logFile, logEntry, { encoding: 'utf8' });
+function log_action(action, details = '') {
+    const log_file = path.join(logs_dir, `${get_date_string()}.log`);
+    const log_entry = `[${new Date().toISOString()}] ACTION: ${action}${details ? ' | ' + details : ''}\n`;
+    fs.appendFileSync(log_file, log_entry, { encoding: 'utf8' });
 }
 
-function getDateString() {
+function get_date_string() {
     const now = new Date();
     return now.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
-module.exports = { logAction };
+module.exports = { log_action };

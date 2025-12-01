@@ -3,7 +3,7 @@ const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const send_api = require('../APIs/send_api');
 const test_api = require('../APIs/test_api');
-const { logAction } = require('../debug/logger');
+const { log_action } = require('../debug/logger');
 
 const app = express();
 app.use(express.json());
@@ -26,35 +26,37 @@ const client = new Client({
   }
 });
 
-let clientReady = false;
+let client_ready = false;
+
 
 client.on('qr', (qr) => {
-  logAction('QR_RECEIVED', 'QR code generated for WhatsApp login');
+  log_action('QR_RECEIVED', 'QR code generated for WhatsApp login');
   console.log('🔍 Please scan this QR code with your WhatsApp app:\n');
   qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', () => {
-  logAction('CLIENT_READY', 'WhatsApp client is ready');
+  log_action('CLIENT_READY', 'WhatsApp client is ready');
   console.log('✅ WhatsApp client is ready!');
-  clientReady = true;
+  client_ready = true;
 });
 
 client.on('auth_failure', (msg) => {
-  logAction('AUTH_FAILURE', msg);
+  log_action('AUTH_FAILURE', msg);
   console.error('⚠️ Auth failure:', msg);
 });
 
 client.initialize();
 
+
 // Mount the API router (paths are defined inside the API module)
-logAction('SERVER_START', 'Mounting API router');
-app.use(send_api(client, () => clientReady));
+log_action('SERVER_START', 'Mounting API router');
+app.use(send_api(client, () => client_ready));
 app.use(test_api);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  logAction('SERVER_LISTEN', `HTTP API listening on http://localhost:${PORT}`);
-  console.log(`🚀 HTTP API listening on http://localhost:${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  log_action('SERVER_LISTEN', `HTTP API listening on http://localhost:${port}`);
+  console.log(`🚀 HTTP API listening on http://localhost:${port}`);
   console.log('   → POST /send   { "number": "<recipient>", "message": "<text>" }');
 });

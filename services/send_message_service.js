@@ -1,18 +1,18 @@
 // Service logic for sending a WhatsApp message
-const { logAction } = require('../debug/logger');
+const { log_action } = require('../debug/logger');
 function send_message_service(client, number, message) {
   // Normalize the number: remove '+' and any non-digit characters
   const normalized = number.replace(/\D/g, '');
   // Construct the chat ID (e.g. "966598685983@c.us")
-  const chatId = `${normalized}@c.us`;
-  logAction('SEND_MESSAGE_ATTEMPT', `to: ${chatId}, message: ${message}`);
-  return client.sendMessage(chatId, message)
+  const chat_id = `${normalized}@c.us`;
+  log_action('SEND_MESSAGE_ATTEMPT', `to: ${chat_id}, message: ${message}`);
+  return client.sendMessage(chat_id, message)
     .then(() => {
-      logAction('SEND_MESSAGE_SUCCESS', `to: ${chatId}`);
-      return { success: true, to: chatId, message };
+      log_action('SEND_MESSAGE_SUCCESS', `to: ${chat_id}`);
+      return { success: true, to: chat_id, message };
     })
     .catch((err) => {
-      logAction('SEND_MESSAGE_ERROR', `to: ${chatId}, error: ${err.message}`);
+      log_action('SEND_MESSAGE_ERROR', `to: ${chat_id}, error: ${err.message}`);
       throw err;
     });
 }
