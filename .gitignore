@@ -1,5 +1,30 @@
+# Node modules and dependencies
+/node_modules
+
+# Local environment variables
+.env
+
+# Auth/session files for whatsapp-web.js
 /.wwebjs_auth
 /.wwebjs_cache
-/node_modules
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Backup and temp files
+*.bak
+*.tmp
+
+# VS Code settings
+.vscode/
+
+# Package files
 /package-lock.json
 /package.json
