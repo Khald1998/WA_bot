@@ -24,9 +24,7 @@ module.exports = (client, is_client_ready) => {
     }
 
     try {
-      log_action('API_SEND_ATTEMPT', `number: ${number}, message: ${message}`);
       const result = await send_message_service(client, number, message);
-      log_action('API_SEND_SUCCESS', `number: ${number}`);
       return res.json(result);
     } catch (err) {
       log_action('API_SEND_ERROR', err.message);
