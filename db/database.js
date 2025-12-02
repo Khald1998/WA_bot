@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const schema = require('./schema/schema');
 
-const dbPath = path.join(__dirname, 'messages.db');
+const dbPath = path.join(__dirname, '../FPG.db');
 const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
