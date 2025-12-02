@@ -7,6 +7,7 @@ const { log_action } = require('../debug/logger');
 const attach_message_listener = require('../services/message_listener_service');
 const archive_chat_api = require('../APIs/archive_chat_api');
 const get_individual_chats_api = require('../APIs/get_individual_chats_api');
+const get_group_info_api = require('../APIs/get_group_info_api');
 const last_message_in_group_api = require('../APIs/last_message_in_group_api');
 const message_count_in_group_api = require('../APIs/message_count_in_group_api');
 
@@ -30,6 +31,7 @@ app.use(test_api);
 app.use(get_group_names_api(client, get_client_ready));
 app.use(archive_chat_api(client, get_client_ready));
 app.use(get_individual_chats_api(client, get_client_ready));
+app.use(get_group_info_api(client, get_client_ready));
 app.use(last_message_in_group_api(client, get_client_ready));
 app.use(message_count_in_group_api(client, get_client_ready));
 
