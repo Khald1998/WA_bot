@@ -1,3 +1,5 @@
+const SERVICE_FILE_NAME = 'services/test_service.js';
+const FUNCTION_NAME = 'get_test_response';
 // Service to generate test response with a random number
 function get_test_response() {
   const { log_action } = require('../debug/logger');

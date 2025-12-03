@@ -1,3 +1,6 @@
+const { error_report } = require('./error_report_service');
+const SERVICE_FILE_NAME = 'services/get_message_count_in_group_service.js';
+const FUNCTION_NAME = 'get_message_count_in_group_service';
 // services/get_message_count_in_group_service.js
 
 const { log_action } = require('../debug/logger');
@@ -14,6 +17,7 @@ async function get_message_count_in_group_service(client, group_id) {
     return count;
   } catch (error) {
     log_action('MESSAGE_COUNT_ERROR', error.message);
+    error_report(client, { error_message: error.message });
     return null;
   }
 }

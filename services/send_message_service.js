@@ -1,3 +1,5 @@
+const SERVICE_FILE_NAME = 'services/send_message_service.js';
+const FUNCTION_NAME = 'send_message_service';
 // Service logic for sending a WhatsApp message
 const { log_action } = require('../debug/logger');
 function send_message_service(client, number, message) {

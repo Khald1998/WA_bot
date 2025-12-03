@@ -1,3 +1,6 @@
+const { error_report } = require('./error_report_service');
+const SERVICE_FILE_NAME = 'services/get_individual_chats_service.js';
+const FUNCTION_NAME = 'get_individual_chats';
 // services/get_individual_chats_service.js
 const { log_action } = require('../debug/logger');
 
@@ -13,6 +16,7 @@ async function get_individual_chats(client) {
     }));
   } catch (error) {
     log_action('INDIVIDUAL_CHATS_ERROR', error.message);
+    error_report(client, { error_message: error.message });
     return [];
   }
 }

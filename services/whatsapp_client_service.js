@@ -1,3 +1,5 @@
+const SERVICE_FILE_NAME = 'services/whatsapp_client_service.js';
+const FUNCTION_NAME = 'create_whatsapp_client';
 const qrcode = require('qrcode-terminal');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { log_action } = require('../debug/logger');

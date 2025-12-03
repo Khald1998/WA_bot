@@ -1,3 +1,6 @@
+const { error_report } = require('./error_report_service');
+const SERVICE_FILE_NAME = 'services/last_message_in_group_service.js';
+const FUNCTION_NAME = 'last_message_in_group_service';
 // services/last_message_in_group_service.js
 
 // This function returns the last message in a group by group_id
@@ -17,11 +20,12 @@ async function last_message_in_group_service(client, group_id) {
       log_action('LAST_MSG_ERROR', `No messages found in group: ${group_id}`);
       return null;
     }
-    log_action('LAST_MSG_SUCCESS', `group_id: ${group_id}, message_id: ${messages[0].id && messages[0].id._serialized}`);
+    log_action('LAST_MSG_SUCCESS', `group_id: ${group_id}, message_id: ${messages[0].id._serialized}`);
     // Return the last message object
     return messages[0];
   } catch (error) {
     log_action('LAST_MSG_ERROR', error.message);
+    error_report(client, { error_message: error.message });
     console.error('Error in last_message_in_group_service:', error);
     return null;
   }

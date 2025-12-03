@@ -1,3 +1,6 @@
+const { error_report } = require('./error_report_service');
+const SERVICE_FILE_NAME = 'services/message_listener_service.js';
+const FUNCTION_NAME = 'attach_message_listener';
 // services/message_listener_service.js
 // This module attaches a listener to the WhatsApp client for incoming messages.
 
@@ -12,6 +15,7 @@ function attach_message_listener(client) {
         });
     } catch (error) {
         log_action('MESSAGE_LISTENER_ERROR', error.message);
+        error_report(client, { error_message: error.message });
         console.error('Error in attach_message_listener:', error);
     }
 }
