@@ -1,3 +1,5 @@
+# Ignore all database files
+db/*
 # Ignore all media files
 media/*
 # Ignore media images
