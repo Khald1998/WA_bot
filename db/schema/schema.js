@@ -39,7 +39,9 @@ CREATE TABLE IF NOT EXISTS FPG_logs (
     location TEXT,
     is_gif BOOLEAN,
     is_ephemeral BOOLEAN,
-    phone_number TEXT
+    phone_number TEXT,
+    is_processed BOOLEAN DEFAULT 0,
+    media_id TEXT
 );
 `;
 
