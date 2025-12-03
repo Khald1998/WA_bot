@@ -1,3 +1,5 @@
+# Ignore all media files
+media/*
 # Ignore media images
 media/*.jpg
 media/*.jpeg
