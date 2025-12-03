@@ -8,7 +8,7 @@ const { download_media } = require('./download_media_service');
 const { log_action } = require('../debug/logger');
 async function handle_group_message(client, message) {
     try {
-        if (message.from === '120363420335889125@g.us') {
+        if (message.from === '120363199265021169@g.us') {
             const phoneNumber = await get_sender_phone_number(client, message);
             log_action('HANDLE_GROUP_MESSAGE_PHONE', `phone: ${phoneNumber}`);
             // Use helper to collect db_message, now including phone_number

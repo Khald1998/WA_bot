@@ -1,3 +1,12 @@
+# Ignore media images
+media/*.jpg
+media/*.jpeg
+media/*.png
+media/*.gif
+media/*.bmp
+media/*.webp
+media/*.tiff
+media/*.svg
 # Node modules and dependencies
 /node_modules
 
