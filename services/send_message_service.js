@@ -1,7 +1,6 @@
 // Service logic for sending a WhatsApp message
 const { log_action } = require('../debug/logger');
 function send_message_service(client, number, message) {
-  // Normalize the number: remove '+' and any non-digit characters
   const normalized = number.replace(/\D/g, '');
   // Construct the chat ID (e.g. "966598685983@c.us")
   const chat_id = `${normalized}@c.us`;

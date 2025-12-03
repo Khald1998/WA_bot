@@ -3,9 +3,11 @@ const path = require('path');
 const { media_name_creation } = require('./media_name_creation_service');
 
 
+const { log_action } = require('../debug/logger');
 async function download_media(message) {
-    if (!message.hasMedia) return null;
     try {
+        log_action('MEDIA_DOWNLOAD_ATTEMPT', `message_id: ${message.id}`);
+        if (!message.hasMedia) return null;
         const media = await message.downloadMedia();
         if (!media || !media.data) return null;
         const mediaSize = Buffer.byteLength(media.data, 'base64');
@@ -15,8 +17,10 @@ async function download_media(message) {
         const fullFileName = `${fileName}${ext}`;
         const filePath = path.join(__dirname, '../media', fullFileName);
         fs.writeFileSync(filePath, Buffer.from(media.data, 'base64'));
+        log_action('MEDIA_DOWNLOAD_SUCCESS', `file: ${fullFileName}`);
         return fullFileName;
     } catch (err) {
+        log_action('MEDIA_DOWNLOAD_ERROR', err.message);
         console.error('Media download failed:', err);
         return null;
     }

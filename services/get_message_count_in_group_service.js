@@ -1,14 +1,21 @@
 // services/get_message_count_in_group_service.js
 
-// This function returns the message count in a group by group_id
+const { log_action } = require('../debug/logger');
 async function get_message_count_in_group_service(client, group_id) {
-  // Fetch the chat by group_id
-  const chat = await client.getChatById(group_id);
-  if (!chat) {
+  try {
+    log_action('MESSAGE_COUNT_ATTEMPT', `group_id: ${group_id}`);
+    const chat = await client.getChatById(group_id);
+    if (!chat) {
+      log_action('MESSAGE_COUNT_ERROR', `Group not found: ${group_id}`);
+      return null;
+    }
+    const count = chat.msgs ? chat.msgs.length : 0;
+    log_action('MESSAGE_COUNT_SUCCESS', `group_id: ${group_id}, count: ${count}`);
+    return count;
+  } catch (error) {
+    log_action('MESSAGE_COUNT_ERROR', error.message);
     return null;
   }
-  // Return the message count (total messages in the group)
-  return chat.msgs ? chat.msgs.length : 0;
 }
 
 module.exports = {

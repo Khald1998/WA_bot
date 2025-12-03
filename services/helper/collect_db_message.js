@@ -1,13 +1,14 @@
 // services/helper/collect_db_message.js
 // Helper function to collect all required properties for dbMessage from a WhatsApp message object
-
+const { log_action } = require('../../debug/logger');
 function collect_db_message(message, phone_number) {
+    log_action('COLLECT_DB_MESSAGE', `id: ${message.id._serialized}`);
     return {
-        id: message.id && message.id.id,
+        mid: message.id.id,
         from_me: message.fromMe,
         remote: message.from,
         participant: message.author,
-        _serialized: message.id && message.id._serialized,
+        _serialized: message.id._serialized,
         body: message.body,
         type: message.type,
         notify_name: message.notifyName,
