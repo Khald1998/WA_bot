@@ -1,3 +1,6 @@
+// Initialize database and create tables if they don't exist
+require('../db/database');
+
 const express = require('express');
 const { create_whatsapp_client } = require('../services/whatsapp_client_service');
 const send_message_api = require('../APIs/send_message_api');

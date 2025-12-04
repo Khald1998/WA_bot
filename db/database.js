@@ -11,11 +11,20 @@ const phone = require('./schema/phone');
 const dbPath = path.join(__dirname, '../FPG.db');
 const db = new sqlite3.Database(dbPath);
 
+// Create tables if they don't exist
 db.serialize(() => {
-    db.run(FPG_logs);
-    db.run(IBAN);
-    db.run(national_id);
-    db.run(phone);
+    db.run(FPG_logs, (err) => {
+        if (err) console.error('Error creating FPG_logs table:', err.message);
+    });
+    db.run(IBAN, (err) => {
+        if (err) console.error('Error creating IBAN table:', err.message);
+    });
+    db.run(national_id, (err) => {
+        if (err) console.error('Error creating national_id table:', err.message);
+    });
+    db.run(phone, (err) => {
+        if (err) console.error('Error creating phone table:', err.message);
+    });
 });
 
 const insert_message = require('./utility/insert_message');
