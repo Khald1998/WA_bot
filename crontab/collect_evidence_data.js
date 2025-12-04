@@ -25,8 +25,10 @@ try {
                 const ibanParsed = parser_iban(log.body);
                 const phoneParsed = parser_phone(log.body);
                 const nationalIdParsed = parser_national_id(log.body);
+                // mark the log as having been processed data (set is_processed to true)
 
                 if (ibanParsed.length || phoneParsed.length || nationalIdParsed.length) {
+                    // mark the log as having evidence data (set is_valid_evidence to true)
                     results.push({
                         mid: log.mid,
                         iban: ibanParsed,
