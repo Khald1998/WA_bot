@@ -1,4 +1,4 @@
-// crontab/collect_data.js
+// crontab/collect_evidence_data.js
 // This script is intended for scheduled data collection tasks.
 // Add your data collection logic below.
 
@@ -20,18 +20,23 @@ try {
                 (log.type === 'chat' ||
                  ((log.type === 'image' || log.type === 'video') && log.body))
             );
+            const results = [];
             for (const log of chatLogs) {
-                // Use the parser functions on relevant fields if present
                 const ibanParsed = parser_iban(log.body);
                 const phoneParsed = parser_phone(log.body);
                 const nationalIdParsed = parser_national_id(log.body);
-                console.log({
-                    mid: log.mid,
-                    iban: ibanParsed,
-                    phone: phoneParsed,
-                    national_id: nationalIdParsed
-                });
+
+                if (ibanParsed.length || phoneParsed.length || nationalIdParsed.length) {
+                    results.push({
+                        mid: log.mid,
+                        iban: ibanParsed,
+                        phone: phoneParsed,
+                        national_id: nationalIdParsed,
+                        log_body: log.body
+                    });
+                }
             }
+            console.log('Filtered Results:', results);
             console.log('Total FPG_logs entries:', chatLogs.length);
         }
     });
