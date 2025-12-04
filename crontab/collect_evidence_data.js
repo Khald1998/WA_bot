@@ -1,8 +1,5 @@
 
 
-// Initialize database and create tables if they don't exist
-require('../db/database');
-
 const get_all_FPG_logs = require('../db/utility/get_all_FPG_logs');
 const update_fpg_log = require('../db/utility/update_FPG_log');
 const parser_iban = require('../parser/parser_iban');
@@ -81,54 +78,45 @@ function process_log(log) {
 }
 
 
-function store_evidence(result, log) {
-    const now = new Date().toISOString();
+function store_evidence(result) {
+    const timestamp = new Date().toISOString();
     
     // Store IBANs
-    result.iban.forEach(iban_data => {
-        const id = crypto.createHash('sha256')
-            .update(`${log._serialized}_${iban_data.iban}`)
-            .digest('hex');
-        
+    result.iban.forEach(iban => {
+        const id = crypto.randomBytes(16).toString('hex');
         add_or_update_IBAN({
             id: id,
-            FPG_logs_id: log._serialized,
-            iban_number: iban_data.iban,
-            original_text: iban_data.original_text,
-            created_at: now,
-            updated_at: now
+            FPG_logs_id: result.mid,
+            iban_number: iban,
+            original_text: result.log_body,
+            created_at: timestamp,
+            updated_at: timestamp
         });
     });
     
-    // Store phones
-    result.phone.forEach(phone_data => {
-        const id = crypto.createHash('sha256')
-            .update(`${log._serialized}_${phone_data.phone}`)
-            .digest('hex');
-        
+    // Store phone numbers
+    result.phone.forEach(phone => {
+        const id = crypto.randomBytes(16).toString('hex');
         add_or_update_phone({
             id: id,
-            FPG_logs_id: log._serialized,
-            phone_number: phone_data.phone,
-            original_text: phone_data.original_text,
-            created_at: now,
-            updated_at: now
+            FPG_logs_id: result.mid,
+            phone_number: phone,
+            original_text: result.log_body,
+            created_at: timestamp,
+            updated_at: timestamp
         });
     });
     
     // Store national IDs
-    result.national_id.forEach(national_id_data => {
-        const id = crypto.createHash('sha256')
-            .update(`${log._serialized}_${national_id_data.national_id}`)
-            .digest('hex');
-        
+    result.national_id.forEach(national_id => {
+        const id = crypto.randomBytes(16).toString('hex');
         add_or_update_national_id({
             id: id,
-            FPG_logs_id: log._serialized,
-            national_id_number: national_id_data.national_id,
-            original_text: national_id_data.original_text,
-            created_at: now,
-            updated_at: now
+            FPG_logs_id: result.mid,
+            national_id_number: national_id,
+            original_text: result.log_body,
+            created_at: timestamp,
+            updated_at: timestamp
         });
     });
 }
@@ -142,29 +130,37 @@ function collect_evidence_data() {
         }
         // Filter to only unprocessed logs
         const unprocessed_logs = logs.filter(log => log.is_processed !== true);
-        console.log(`Found ${unprocessed_logs.length} unprocessed logs to process`);
+        console.log(`[${new Date().toISOString()}] Found ${unprocessed_logs.length} unprocessed logs to process`);
+        
         // Process each log and collect results
         const evidence_results = [];
         for (const log of unprocessed_logs) {
             const result = process_log(log);
             if (result) {
                 evidence_results.push(result);
-                // Store evidence in respective tables
-                store_evidence(result, log);
+                store_evidence(result);
             }
         }
+        
         // Display summary
-        console.log(`Processing complete. Found ${evidence_results.length} logs with evidence.`);
+        console.log(`[${new Date().toISOString()}] Processing complete. Found ${evidence_results.length} logs with evidence.`);
         if (evidence_results.length > 0) {
-            console.log('Evidence Results:', JSON.stringify(evidence_results, null, 2));
+            console.log('Evidence stored in respective tables.');
         }
     });
 }
 
-// Run the collection process
-try {
-    collect_evidence_data();
-} catch (error) {
-    console.error('Unexpected error during evidence collection:', error);
-    process.exit(1);
+// Run the collection process continuously
+function run_continuously() {
+    try {
+        collect_evidence_data();
+    } catch (error) {
+        console.error('Unexpected error during evidence collection:', error);
+    }
+    
+    // Run again after 30 seconds
+    setTimeout(run_continuously, 30000);
 }
+
+console.log('Starting continuous evidence collection...');
+run_continuously();
