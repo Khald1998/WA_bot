@@ -17,6 +17,7 @@ try {
             console.error('Error fetching FPG_logs:', err);
         } else {
             const chatLogs = logs.filter(log =>
+                log.is_processed === false &&
                 (log.type === 'chat' ||
                  ((log.type === 'image' || log.type === 'video') && log.body))
             );
