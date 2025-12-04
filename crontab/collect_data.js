@@ -22,14 +22,14 @@ try {
             );
             for (const log of chatLogs) {
                 // Use the parser functions on relevant fields if present
-                // const ibanParsed = parser_iban(log.body);
+                const ibanParsed = parser_iban(log.body);
                 const phoneParsed = parser_phone(log.body);
-                // const nationalIdParsed = parser_national_id(log.body);
+                const nationalIdParsed = parser_national_id(log.body);
                 console.log({
                     mid: log.mid,
-                    // iban: ibanParsed,
+                    iban: ibanParsed,
                     phone: phoneParsed,
-                    // national_id: nationalIdParsed
+                    national_id: nationalIdParsed
                 });
             }
             console.log('Total FPG_logs entries:', chatLogs.length);

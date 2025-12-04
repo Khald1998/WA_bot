@@ -1,13 +1,31 @@
 // parser/parser_national_id.js
-// Parses and validates national ID (basic example)
+// Parses and validates Saudi National ID / Iqama numbers from text.
+const { isValidSaudiID } = require('saudi-id-validator');
 
-function parser_national_id(nationalId) {
-    if (typeof nationalId !== 'string') return null;
-    // Remove spaces and dashes
-    const cleaned = nationalId.replace(/[\s\-]/g, '');
-    // Basic validation: must be alphanumeric, length 5-20
-    if (!/^[A-Za-z0-9]{5,20}$/.test(cleaned)) return null;
-    return cleaned;
+
+function parser_national_id(text) {
+    // 1. Validate input
+    if (typeof text !== 'string') {
+        return [];
+    }
+
+    // 2. Find potential IDs: Matches sequences of exactly 10 digits.
+    // This includes both Western (0-9) and Eastern Arabic (٠-٩) numerals.
+    const idRegex = /[\d٠١٢٣٤٥٦٧٨٩]{10}/g;
+    const potentialMatches = text.match(idRegex) || [];
+
+    // 3. Validate each candidate and collect valid ones
+    const validIds = [];
+    for (const candidate of potentialMatches) {
+        // The library validates the number format and check digit.
+        if (isValidSaudiID(candidate)) {
+            // The library accepts various inputs, but we normalize to a string of Western digits.
+            // This ensures a consistent return format.
+            validIds.push(candidate.replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+        }
+    }
+    // 4. Return the list of validated IDs
+    return validIds;
 }
 
 module.exports = parser_national_id;
