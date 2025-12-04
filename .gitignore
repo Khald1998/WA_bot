@@ -1,5 +1,7 @@
 # Ignore all database files
 db/*
+FPG.db
+
 # Ignore all media files
 media/*
 # Ignore media images
