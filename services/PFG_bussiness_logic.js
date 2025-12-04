@@ -15,7 +15,7 @@ async function handle_group_message(client, message) {
             const db_message = collect_db_message(message, phoneNumber);
             // Download media and set media_id
             db_message.media_id = await download_media(client, message);
-            log_action('HANDLE_GROUP_MESSAGE_DB_INSERT', `id: ${db_message.id}`);
+            log_action('HANDLE_GROUP_MESSAGE_DB_INSERT', `mid: ${db_message.mid}`);
             insert_message(db_message);
         }
         log_action('HANDLE_GROUP_MESSAGE_SUCCESS', `from: ${message.from}`);

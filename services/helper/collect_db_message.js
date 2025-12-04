@@ -6,7 +6,7 @@ const FUNCTION_NAME = 'collect_db_message';
 const { log_action } = require('../../debug/logger');
 function collect_db_message(message, phone_number) {
     try {
-        log_action('COLLECT_DB_MESSAGE', `id: ${message.id._serialized}`);
+        log_action('COLLECT_DB_MESSAGE', `mid: ${message.id._serialized}`);
         return {
             mid: message.id.id,
             from_me: message.fromMe,
