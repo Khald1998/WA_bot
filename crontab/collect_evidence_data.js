@@ -12,6 +12,58 @@ const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
 
+// Helper to process logs sequentially with delay
+async function process_logs_sequentially(logs) {
+    const results = [];
+    
+    for (const log of logs) {
+        // Second check: determine if it's valid for processing
+        const is_valid_type = log.type === 'chat' || 
+            ((log.type === 'image' || log.type === 'video') && log.body);
+        
+        if (!is_valid_type) {
+            // Set is_processed to true for non-chat and image/video without body
+            await new Promise((resolve) => {
+                update_fpg_log(log._serialized, { is_processed: true }, (err) => {
+                    if (err) console.error(`Error updating log ${log._serialized}:`, err);
+                    resolve();
+                });
+            });
+            continue;
+        }
+        
+        // Process valid logs
+        const iban_parsed = parser_iban(log.body);
+        const phone_parsed = parser_phone(log.body);
+        const national_id_parsed = parser_national_id(log.body);
+        
+        // Mark the log as having been processed
+        const has_evidence = iban_parsed.length > 0 || phone_parsed.length > 0 || national_id_parsed.length > 0;
+        
+        await new Promise((resolve) => {
+            update_fpg_log(log._serialized, { 
+                is_processed: true,
+                is_valid_evidence: has_evidence ? 1 : 0
+            }, (err) => {
+                if (err) console.error(`Error updating log ${log._serialized}:`, err);
+                resolve();
+            });
+        });
+
+        if (has_evidence) {
+            results.push({
+                mid: log.mid,
+                iban: iban_parsed,
+                phone: phone_parsed,
+                national_id: national_id_parsed,
+                log_body: log.body
+            });
+        }
+    }
+    
+    return results;
+}
+
 try {
     get_all_FPG_logs((err, logs) => {
         if (err) {
@@ -20,46 +72,10 @@ try {
             // First filter: get logs that are not processed (is_processed !== true)
             const unprocessed_logs = logs.filter(log => log.is_processed !== true);
             
-            const results = [];
-            for (const log of unprocessed_logs) {
-                // Second check: determine if it's valid for processing
-                const is_valid_type = log.type === 'chat' || 
-                    ((log.type === 'image' || log.type === 'video') && log.body);
-                
-                if (!is_valid_type) {
-                    // Set is_processed to true for non-chat and image/video without body
-                    update_fpg_log(log._serialized, { is_processed: true }, (err) => {
-                        if (err) console.error(`Error updating log ${log._serialized}:`, err);
-                    });
-                    continue;
-                }
-                
-                // Process valid logs
-                const iban_parsed = parser_iban(log.body);
-                const phone_parsed = parser_phone(log.body);
-                const national_id_parsed = parser_national_id(log.body);
-                
-                // Mark the log as having been processed
-                const has_evidence = iban_parsed.length > 0 || phone_parsed.length > 0 || national_id_parsed.length > 0;
-                update_fpg_log(log._serialized, { 
-                    is_processed: true,
-                    is_valid_evidence: has_evidence ? 1 : 0
-                }, (err) => {
-                    if (err) console.error(`Error updating log ${log._serialized}:`, err);
-                });
-
-                if (has_evidence) {
-                    results.push({
-                        mid: log.mid,
-                        iban: iban_parsed,
-                        phone: phone_parsed,
-                        national_id: national_id_parsed,
-                        log_body: log.body
-                    });
-                }
-            }
-            console.log('Filtered Results:', results);
-            console.log('Total unprocessed logs:', unprocessed_logs.length);
+            process_logs_sequentially(unprocessed_logs).then(results => {
+                console.log('Filtered Results:', results);
+                console.log('Total unprocessed logs:', unprocessed_logs.length);
+            });
         }
     });
 } catch (e) {
