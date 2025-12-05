@@ -15,6 +15,9 @@ const message_count_in_group_api = require('../APIs/message_count_in_group_api')
 const get_group_chat_history_api = require('../APIs/get_group_chat_history_api');
 const validate_chat_completeness_api = require('../APIs/validate_chat_completeness_api');
 const collect_evidence_api = require('../APIs/collect_evidence_api');
+const send_iban_csv_api = require('../APIs/send_iban_csv_api');
+const send_phone_csv_api = require('../APIs/send_phone_csv_api');
+const send_national_id_csv_api = require('../APIs/send_national_id_csv_api');
 
 const app = express();
 app.use(express.json());
@@ -41,6 +44,9 @@ app.use(message_count_in_group_api(client, get_client_ready));
 app.use(get_group_chat_history_api(client, get_client_ready));
 app.use(validate_chat_completeness_api(client, get_client_ready));
 app.use(collect_evidence_api);
+app.use(send_iban_csv_api(client, get_client_ready));
+app.use(send_phone_csv_api(client, get_client_ready));
+app.use(send_national_id_csv_api(client, get_client_ready));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
@@ -54,4 +60,7 @@ app.listen(port, () => {
   console.log('   → POST /message_count_in_group  { "group_id": "<group_id>" }');
   console.log('   → GET  /group-chat-history/:group_id');
   console.log('   → POST /validate-chat-completeness');
+  console.log('   → POST /send-iban-csv           { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /send-phone-csv          { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /send-national-id-csv    { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
 });
