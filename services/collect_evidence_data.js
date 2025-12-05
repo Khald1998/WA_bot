@@ -95,7 +95,7 @@ function store_evidence(result) {
     
     // Store IBANs
     result.iban.forEach(iban => {
-        const id = crypto.randomBytes(16).toString('hex');
+        const id = crypto.createHash('sha256').update(result.mid + ':' + iban).digest('hex');
         add_or_update_IBAN({
             id: id,
             FPG_logs_id: result.mid,
@@ -105,10 +105,10 @@ function store_evidence(result) {
             updated_at: timestamp
         });
     });
-    
+
     // Store phone numbers
     result.phone.forEach(phone => {
-        const id = crypto.randomBytes(16).toString('hex');
+        const id = crypto.createHash('sha256').update(result.mid + ':' + phone).digest('hex');
         add_or_update_phone({
             id: id,
             FPG_logs_id: result.mid,
@@ -118,10 +118,10 @@ function store_evidence(result) {
             updated_at: timestamp
         });
     });
-    
+
     // Store national IDs
     result.national_id.forEach(national_id => {
-        const id = crypto.randomBytes(16).toString('hex');
+        const id = crypto.createHash('sha256').update(result.mid + ':' + national_id).digest('hex');
         add_or_update_national_id({
             id: id,
             FPG_logs_id: result.mid,
