@@ -150,17 +150,5 @@ function collect_evidence_data() {
     });
 }
 
-// Run the collection process continuously
-function run_continuously() {
-    try {
-        collect_evidence_data();
-    } catch (error) {
-        console.error('Unexpected error during evidence collection:', error);
-    }
-    
-    // Run again after 30 seconds
-    setTimeout(run_continuously, 30000);
-}
-
-console.log('Starting continuous evidence collection...');
-run_continuously();
+// To run the collection process once, uncomment below:
+collect_evidence_data();
