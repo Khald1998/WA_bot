@@ -4,24 +4,36 @@
  */
 
 const express = require('express');
-const router = express.Router();
+const { log_action } = require('../debug/logger');
 const { get_all_group_chat_history } = require('../services/get_group_chat_history_service');
 
-/**
- * GET /api/group-chat-history/:group_id
- * Fetches all chat history for a given group
- * Query param: clientId (optional, depends on your client management)
- */
-router.get('/group-chat-history/:group_id', async (req, res) => {
-    const group_id = req.params.group_id;
-    const client = req.app.get('whatsappClient'); // Adjust this to your client retrieval logic
+module.exports = (client, get_client_ready) => {
+    const router = express.Router();
 
-    try {
-        const messages = await get_all_group_chat_history(group_id, client);
-        res.status(200).json({ success: true, messages });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
+    /**
+     * GET /group-chat-history/:group_id
+     * Fetches all chat history for a given group
+     */
+    router.get('/group-chat-history/:group_id', async (req, res) => {
+        if (!get_client_ready()) {
+            log_action('API_GROUP_CHAT_HISTORY_ATTEMPT', 'Client not ready');
+            return res.status(503).json({
+                error: 'WhatsApp client not ready yet. Please wait a moment and try again.'
+            });
+        }
 
-module.exports = router;
+        const group_id = req.params.group_id;
+
+        try {
+            log_action('API_GROUP_CHAT_HISTORY_ATTEMPT', `Fetching history for group_id: ${group_id}`);
+            const messages = await get_all_group_chat_history(group_id, client);
+            log_action('API_GROUP_CHAT_HISTORY_SUCCESS', `Returned ${messages.length} messages for group_id: ${group_id}`);
+            res.status(200).json({ success: true, messages });
+        } catch (error) {
+            log_action('API_GROUP_CHAT_HISTORY_ERROR', error.message);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    return router;
+};

@@ -1,15 +1,3 @@
-/**
- * Service to fetch all group chat history
- * @file get_all_group_chat_history.js
- */
-
-/**
- * Fetches all chat history from a WhatsApp group with no message limit
- * @param {string} group_id - The group chat ID (format: xxxxx@g.us)
- * @param {Client} client - The WhatsApp Web client instance
- * @returns {Promise<Array>} Array of all messages in the group
- * @throws {Error} If group_id or client is missing, or if fetch fails
- */
 async function get_all_group_chat_history(group_id, client) {
     // Validate required parameters
     if (!group_id) {
@@ -20,28 +8,31 @@ async function get_all_group_chat_history(group_id, client) {
     }
 
     try {
-        // Get the chat by ID
-        const chat = await client.getChatById(group_id);
-
-        // Verify it's a group chat
-        if (!chat.isGroup) {
-            throw new Error('The provided chat ID is not a group chat');
+        // Get all chats using client.getChats()
+        const chats = await client.getChats();
+        
+        // Find the specific group chat by ID
+        const groupChat = chats.find(chat => chat.id._serialized === group_id);
+        
+        // Check if group chat exists
+        if (!groupChat) {
+            throw new Error(`Group chat with ID ${group_id} not found`);
         }
-
-        // Fetch all messages with no limit
-        // Using Infinity to retrieve all available messages
-        const messages = await chat.fetchMessages({ limit: Infinity });
-
+        
+        // Fetch all messages with no limit (-1 or a very large number)
+        const messages = await groupChat.fetchMessages({ limit: Number.MAX_SAFE_INTEGER });
+        
         // Print the number of messages
         console.log('Total messages:', messages.length);
-        // Print the first message if available
-        if (messages.length > 0) {
-            console.log('First message:', messages[0]);
-        } else {
-            console.log('No messages found.');
-        }
-        // Return nothing
-        return;
+        
+        // Map to required fields only
+        const result = messages.map(msg => ({
+            body: msg.body,
+            id_serialized: msg.id._serialized,
+            type: msg.type
+        }));
+        
+        return result;
 
     } catch (error) {
         throw new Error(`Failed to fetch group chat history: ${error.message}`);

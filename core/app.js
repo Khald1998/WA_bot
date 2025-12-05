@@ -12,6 +12,7 @@ const archive_chat_api = require('../APIs/archive_chat_api');
 const get_individual_chats_api = require('../APIs/get_individual_chats_api');
 const last_message_in_group_api = require('../APIs/last_message_in_group_api');
 const message_count_in_group_api = require('../APIs/message_count_in_group_api');
+const get_group_chat_history_api = require('../APIs/get_group_chat_history_api');
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,7 @@ app.use(archive_chat_api(client, get_client_ready));
 app.use(get_individual_chats_api(client, get_client_ready));
 app.use(last_message_in_group_api(client, get_client_ready));
 app.use(message_count_in_group_api(client, get_client_ready));
+app.use(get_group_chat_history_api(client, get_client_ready));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
@@ -46,4 +48,5 @@ app.listen(port, () => {
   console.log('   → POST /archive_chat          { "group_id": "<group_id>" }');
   console.log('   → POST /last_message_in_group   { "group_id": "<group_id>" }');
   console.log('   → POST /message_count_in_group  { "group_id": "<group_id>" }');
+  console.log('   → GET  /group-chat-history/:group_id');
 });
