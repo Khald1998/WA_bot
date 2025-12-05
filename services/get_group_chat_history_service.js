@@ -8,12 +8,13 @@ async function get_all_group_chat_history(group_id, client) {
     }
 
     try {
-        // Get all chats using client.getChats()
-        const chats = await client.getChats();
+        // // Get all chats using client.getChats()
+        // const chats = await client.getChats();
         
-        // Find the specific group chat by ID
-        const groupChat = chats.find(chat => chat.id._serialized === group_id);
-        
+        // // Find the specific group chat by ID
+        // const groupChat = chats.find(chat => chat.id._serialized === group_id);
+        const groupChat = await client.getChatById(group_id);
+
         // Check if group chat exists
         if (!groupChat) {
             throw new Error(`Group chat with ID ${group_id} not found`);
@@ -25,14 +26,8 @@ async function get_all_group_chat_history(group_id, client) {
         // Print the number of messages
         console.log('Total messages:', messages.length);
         
-        // Map to required fields only
-        const result = messages.map(msg => ({
-            body: msg.body,
-            id_serialized: msg.id._serialized,
-            type: msg.type
-        }));
-        
-        return result;
+        // Return raw messages
+        return messages;
 
     } catch (error) {
         throw new Error(`Failed to fetch group chat history: ${error.message}`);

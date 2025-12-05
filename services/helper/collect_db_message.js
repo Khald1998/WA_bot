@@ -45,7 +45,8 @@ function collect_db_message(message, phone_number) {
             is_gif: message.isGif,
             is_ephemeral: message.isEphemeral,
             phone_number: phone_number,
-            is_valid_evidence: false
+            is_valid_evidence: false,
+            is_processed: false
         };
     } catch (error) {
         error_report(null, { error_message: error.message });

@@ -26,7 +26,12 @@ module.exports = (client, get_client_ready) => {
 
         try {
             log_action('API_GROUP_CHAT_HISTORY_ATTEMPT', `Fetching history for group_id: ${group_id}`);
-            const messages = await get_all_group_chat_history(group_id, client);
+            const rawMessages = await get_all_group_chat_history(group_id, client);
+            const messages = rawMessages.map(msg => ({
+                body: msg.body,
+                id_serialized: msg.id._serialized,
+                type: msg.type
+            }));
             log_action('API_GROUP_CHAT_HISTORY_SUCCESS', `Returned ${messages.length} messages for group_id: ${group_id}`);
             res.status(200).json({ success: true, messages });
         } catch (error) {
