@@ -9,6 +9,8 @@ const add_or_update_IBAN = require('../db/utility/add_or_update_IBAN');
 const add_or_update_phone = require('../db/utility/add_or_update_phone');
 const add_or_update_national_id = require('../db/utility/add_or_update_national_id');
 const crypto = require('crypto');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 
 
@@ -40,41 +42,51 @@ function has_evidence(evidence) {
 }
 
 
-function mark_as_processed(serialized_id, is_valid_evidence = false) {
+function mark_as_processed(db, serialized_id, is_valid_evidence = false, callback) {
     const update_data = {
         is_processed: true,
         is_valid_evidence: is_valid_evidence ? 1 : 0
     };
-    update_fpg_log(serialized_id, update_data, (err) => {
+    
+    const query = `UPDATE FPG_logs SET is_processed = ?, is_valid_evidence = ? WHERE _serialized = ?`;
+    db.run(query, [update_data.is_processed, update_data.is_valid_evidence, serialized_id], (err) => {
         if (err) {
             console.error(`Failed to update log ${serialized_id}:`, err);
         }
+        if (callback) callback(err);
     });
 }
 
 
-function process_log(log) {
+function process_log(db, log, callback) {
     // Skip logs that aren't valid for processing
     if (!is_valid_for_processing(log)) {
-        mark_as_processed(log._serialized, false);
-        return null;
+        mark_as_processed(db, log._serialized, false, callback);
+        return;
     }
     // Extract evidence from the message body
     const evidence = extract_evidence(log.body);
     const found_evidence = has_evidence(evidence);
     // Update the log status in database
-    mark_as_processed(log._serialized, found_evidence);
-    // Return formatted result if evidence was found
-    if (found_evidence) {
-        return {
-            mid: log.mid,
-            iban: evidence.ibans,
-            phone: evidence.phones,
-            national_id: evidence.national_ids,
-            log_body: log.body
-        };
-    }
-    return null;
+    mark_as_processed(db, log._serialized, found_evidence, (err) => {
+        if (err) {
+            if (callback) callback(err);
+            return;
+        }
+        // Return formatted result if evidence was found
+        if (found_evidence) {
+            const result = {
+                mid: log.mid,
+                iban: evidence.ibans,
+                phone: evidence.phones,
+                national_id: evidence.national_ids,
+                log_body: log.body
+            };
+            if (callback) callback(null, result);
+        } else {
+            if (callback) callback(null, null);
+        }
+    });
 }
 
 
@@ -123,32 +135,57 @@ function store_evidence(result) {
 
 
 function collect_evidence_data() {
+    const dbPath = path.join(__dirname, '../FPG.db');
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
+        if (err) {
+            console.error('Error opening database:', err);
+            return;
+        }
+    });
+
     get_all_FPG_logs((err, logs) => {
         if (err) {
             console.error('Error fetching FPG logs:', err);
+            db.close();
             return;
         }
-        // Filter to only unprocessed logs
-        const unprocessed_logs = logs.filter(log => log.is_processed !== true);
+        // Filter to only unprocessed logs (is_processed is 0, false, or null/undefined)
+        const unprocessed_logs = logs.filter(log => !log.is_processed);
         console.log(`[${new Date().toISOString()}] Found ${unprocessed_logs.length} unprocessed logs to process`);
         
-        // Process each log and collect results
+        // Process each log sequentially using db.serialize to avoid SQLITE_BUSY
         const evidence_results = [];
-        for (const log of unprocessed_logs) {
-            const result = process_log(log);
-            if (result) {
-                evidence_results.push(result);
-                store_evidence(result);
-            }
-        }
+        let processed_count = 0;
         
-        // Display summary
-        console.log(`[${new Date().toISOString()}] Processing complete. Found ${evidence_results.length} logs with evidence.`);
-        if (evidence_results.length > 0) {
-            console.log('Evidence stored in respective tables.');
-        }
+        db.serialize(() => {
+            unprocessed_logs.forEach((log, index) => {
+                process_log(db, log, (err, result) => {
+                    processed_count++;
+                    
+                    if (err) {
+                        console.error(`Error processing log ${log._serialized}:`, err);
+                    } else if (result) {
+                        evidence_results.push(result);
+                        store_evidence(result);
+                    }
+                    
+                    // After processing all logs, display summary and close db
+                    if (processed_count === unprocessed_logs.length) {
+                        console.log(`[${new Date().toISOString()}] Processing complete. Found ${evidence_results.length} logs with evidence.`);
+                        if (evidence_results.length > 0) {
+                            console.log('Evidence stored in respective tables.');
+                        }
+                        db.close();
+                    }
+                });
+            });
+        });
     });
 }
 
 // To run the collection process once, uncomment below:
-collect_evidence_data();
+// collect_evidence_data();
+
+module.exports = {
+    collect_evidence_data
+};

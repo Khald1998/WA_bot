@@ -14,6 +14,7 @@ const last_message_in_group_api = require('../APIs/last_message_in_group_api');
 const message_count_in_group_api = require('../APIs/message_count_in_group_api');
 const get_group_chat_history_api = require('../APIs/get_group_chat_history_api');
 const validate_chat_completeness_api = require('../APIs/validate_chat_completeness_api');
+const collect_evidence_api = require('../APIs/collect_evidence_api');
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use(last_message_in_group_api(client, get_client_ready));
 app.use(message_count_in_group_api(client, get_client_ready));
 app.use(get_group_chat_history_api(client, get_client_ready));
 app.use(validate_chat_completeness_api(client, get_client_ready));
+app.use(collect_evidence_api);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

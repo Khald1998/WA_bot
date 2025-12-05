@@ -11,6 +11,11 @@ const phone = require('./schema/phone');
 const dbPath = path.join(__dirname, '../FPG.db');
 const db = new sqlite3.Database(dbPath);
 
+// Enable WAL mode for concurrent reads and writes
+db.run('PRAGMA journal_mode = WAL;', (err) => {
+    if (err) console.error('Error enabling WAL mode:', err.message);
+});
+
 // Create tables if they don't exist
 db.serialize(() => {
     db.run(FPG_logs, (err) => {
