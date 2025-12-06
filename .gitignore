@@ -1,6 +1,8 @@
 # Ignore all database files
 db/*
 FPG.db
+FPG.db-shm
+FPG.db-wal
 
 # Ignore all media files
 media/*
