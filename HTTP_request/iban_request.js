@@ -8,8 +8,8 @@ const endTime = new Date(yesterday.setHours(23,59,59,999)).toISOString();
 const data = {
   startTime,
   endTime,
-//   numbers: ["966580599359", "966538762235", "966530857472"]
-numbers: ["966580599359"]
+  numbers: ["966580599359", "966538762235", "966530857472"]
+// numbers: ["966580599359"]
 };
 
 axios.post('http://localhost:3000/send-iban-csv', data)
