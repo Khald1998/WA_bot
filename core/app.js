@@ -18,6 +18,9 @@ const collect_evidence_api = require('../APIs/collect_evidence_api');
 const send_iban_csv_api = require('../APIs/send_iban_csv_api');
 const send_phone_csv_api = require('../APIs/send_phone_csv_api');
 const send_national_id_csv_api = require('../APIs/send_national_id_csv_api');
+const email_iban_csv_api = require('../APIs/email_iban_csv_api');
+const email_phone_csv_api = require('../APIs/email_phone_csv_api');
+const email_national_id_csv_api = require('../APIs/email_national_id_csv_api');
 
 const app = express();
 app.use(express.json());
@@ -47,6 +50,9 @@ app.use(collect_evidence_api);
 app.use(send_iban_csv_api(client, get_client_ready));
 app.use(send_phone_csv_api(client, get_client_ready));
 app.use(send_national_id_csv_api(client, get_client_ready));
+app.use(email_iban_csv_api());
+app.use(email_phone_csv_api());
+app.use(email_national_id_csv_api());
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
@@ -63,4 +69,7 @@ app.listen(port, () => {
   console.log('   → POST /send-iban-csv           { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
   console.log('   → POST /send-phone-csv          { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
   console.log('   → POST /send-national-id-csv    { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /email-iban-csv          { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
+  console.log('   → POST /email-phone-csv         { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
+  console.log('   → POST /email-national-id-csv   { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
 });
