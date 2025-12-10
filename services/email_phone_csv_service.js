@@ -64,9 +64,8 @@ function generate_file_name(start_time, end_time, prefix = 'phones') {
  */
 function create_email_transporter(email_config) {
   return nodemailer.createTransport({
-    host: email_config.host,
-    port: email_config.port,
-    secure: email_config.secure,
+    service: email_config.service,
+
     auth: {
       user: email_config.user,
       pass: email_config.pass
