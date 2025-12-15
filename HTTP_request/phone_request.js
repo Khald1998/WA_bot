@@ -1,9 +1,8 @@
 const axios = require('axios');
 
 const now = new Date();
-const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-const startTime = new Date(yesterday.setHours(0,0,0,0)).toISOString();
-const endTime = new Date(yesterday.setHours(23,59,59,999)).toISOString();
+const startTime = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+const endTime = new Date(now.setHours(23, 59, 59, 999)).toISOString();
 
 const data = {
   startTime,
