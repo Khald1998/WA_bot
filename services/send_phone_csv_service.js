@@ -1,102 +1,87 @@
-const SERVICE_FILE_NAME = 'services/send_phone_csv_service.js';
-const FUNCTION_NAME = 'send_phone_csv_service';
-// Service logic for extracting phone numbers within a time range, converting to CSV, and sending to WhatsApp
+const service_file_name = 'services/send_phone_csv_service.js';
+const function_name = 'send_phone_csv_service';
 
 const { log_action } = require('../debug/logger');
-const { MessageMedia } = require('whatsapp-web.js');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const open_database = require('./helper/open_database');
+const escape_csv_field = require('./helper/escape_csv_field');
+const create_csv_media = require('./helper/create_csv_media');
+const send_to_all_numbers = require('./helper/send_to_all_numbers');
 
+function query_phones(db, start_time, end_time) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT id, FPG_logs_id, phone_number, original_text, created_at, updated_at
+      FROM phone
+      WHERE created_at >= ? AND created_at <= ?
+      ORDER BY created_at ASC
+    `;
+    db.all(query, [start_time, end_time], (err, rows) => {
+      err ? reject(err) : resolve(rows);
+    });
+  });
+}
 
-async function send_phone_csv_service(client, startTime, endTime, numbers) {
-  const dbPath = path.join(__dirname, '../FPG.db');
-  const db = new sqlite3.Database(dbPath);
+function phone_to_csv_row(phone) {
+  return [
+    phone.id,
+    phone.FPG_logs_id,
+    escape_csv_field(phone.phone_number),
+    escape_csv_field(phone.original_text),
+    phone.created_at,
+    phone.updated_at
+  ].join(',');
+}
+
+function convert_to_csv(phones) {
+  const header = 'id,FPG_logs_id,phone_number,original_text,created_at,updated_at';
+  const rows = phones.map(phone_to_csv_row);
+  return [header, ...rows].join('\n');
+}
+
+function generate_filename(start_time, end_time) {
+  const sanitize = (t) => t.replace(/:/g, '-');
+  return `phones_${sanitize(start_time)}_to_${sanitize(end_time)}.csv`;
+}
+
+function build_caption(start_time, end_time, count) {
+  return `Phone Numbers Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${count}`;
+}
+
+async function send_phone_csv_service(client, start_time, end_time, numbers) {
+  const db = open_database();
 
   try {
-    log_action('PHONE_CSV_QUERY_ATTEMPT', `startTime: ${startTime}, endTime: ${endTime}`);
+    log_action('PHONE_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
-    // Query phone numbers from database within the time range
-    const phones = await new Promise((resolve, reject) => {
-      const query = `
-        SELECT id, FPG_logs_id, phone_number, original_text, created_at, updated_at
-        FROM phone
-        WHERE created_at >= ? AND created_at <= ?
-        ORDER BY created_at ASC
-      `;
-      
-      db.all(query, [startTime, endTime], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
-
+    const phones = await query_phones(db, start_time, end_time);
     log_action('PHONE_CSV_QUERY_SUCCESS', `Found ${phones.length} phone numbers`);
 
     if (phones.length === 0) {
       log_action('PHONE_CSV_NO_DATA', 'No phone numbers found in the specified time range');
-      db.close();
       return { success: false, message: 'No phone numbers found in the specified time range' };
     }
 
-    // Convert to CSV format
-    const csvHeader = 'id,FPG_logs_id,phone_number,original_text,created_at,updated_at\n';
-    const csvRows = phones.map(phone => {
-      return [
-        phone.id,
-        phone.FPG_logs_id,
-        `"${phone.phone_number}"`,
-        `"${phone.original_text.replace(/"/g, '""')}"`, // Escape quotes in CSV
-        phone.created_at,
-        phone.updated_at
-      ].join(',');
-    });
-    const csvContent = csvHeader + csvRows.join('\n');
+    const csv_content = convert_to_csv(phones);
+    log_action('PHONE_CSV_GENERATED', `CSV size: ${csv_content.length} bytes`);
 
-    log_action('PHONE_CSV_GENERATED', `CSV size: ${csvContent.length} bytes`);
+    const file_name = generate_filename(start_time, end_time);
+    const media = create_csv_media(csv_content, file_name);
+    const caption = build_caption(start_time, end_time, phones.length);
 
-    // Create MessageMedia from CSV buffer
-    const csvBuffer = Buffer.from(csvContent, 'utf-8');
-    const base64Data = csvBuffer.toString('base64');
-    const fileName = `phones_${startTime.replace(/:/g, '-')}_to_${endTime.replace(/:/g, '-')}.csv`;
-    
-    const media = new MessageMedia('text/csv', base64Data, fileName);
-
-    // Send to all numbers in the list
-    const results = [];
-    for (const number of numbers) {
-      const normalized = number.replace(/\D/g, '');
-      const chat_id = `${normalized}@c.us`;
-
-      log_action('PHONE_CSV_SEND_ATTEMPT', `to: ${chat_id}, fileName: ${fileName}`);
-
-      try {
-        await client.sendMessage(chat_id, media, {
-          caption: `Phone Numbers Export\nPeriod: ${startTime} to ${endTime}\nTotal records: ${phones.length}`
-        });
-        log_action('PHONE_CSV_SEND_SUCCESS', `to: ${chat_id}`);
-        results.push({ number: chat_id, success: true });
-      } catch (sendErr) {
-        log_action('PHONE_CSV_SEND_ERROR', `to: ${chat_id}, error: ${sendErr.message}`);
-        results.push({ number: chat_id, success: false, error: sendErr.message });
-      }
-    }
-
-    db.close();
+    const results = await send_to_all_numbers(client, media, numbers, caption, log_action, 'PHONE_CSV');
 
     return {
       success: true,
-      fileName: fileName,
-      recordCount: phones.length,
-      sentTo: results
+      file_name,
+      record_count: phones.length,
+      sent_to: results
     };
 
   } catch (err) {
     log_action('PHONE_CSV_ERROR', `error: ${err.message}`);
-    db.close();
     throw err;
+  } finally {
+    db.close();
   }
 }
 

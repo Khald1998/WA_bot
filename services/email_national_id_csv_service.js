@@ -1,26 +1,18 @@
 const SERVICE_FILE_NAME = 'services/email_national_id_csv_service.js';
 const FUNCTION_NAME = 'email_national_id_csv_service';
 
-/**
- * Email National ID CSV Service
- * 
- * This service extracts national ID records from the database within a specified time range,
- * converts them to CSV format, and sends them as email attachments to recipients.
- */
-
 const { log_action } = require('../debug/logger');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
-// ============================================
-// Helper Functions
-// ============================================
+const DB_PATH = path.join(__dirname, '../FPG.db');
 
-/**
- * Queries national IDs from database within time range
- */
-function query_national_ids_from_database(db, start_time, end_time) {
+function open_database() {
+  return new sqlite3.Database(DB_PATH);
+}
+
+function query_national_ids(db, start_time, end_time) {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT id, FPG_logs_id, national_id_number, original_text, created_at, updated_at
@@ -28,124 +20,135 @@ function query_national_ids_from_database(db, start_time, end_time) {
       WHERE created_at >= ? AND created_at <= ?
       ORDER BY created_at ASC
     `;
-    
     db.all(query, [start_time, end_time], (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
+      err ? reject(err) : resolve(rows);
     });
   });
 }
 
-/**
- * Converts national ID data to CSV format
- */
-function convert_national_ids_to_csv(national_ids) {
-  const csv_header = 'id,FPG_logs_id,national_id_number,original_text,created_at,updated_at\n';
-  const csv_rows = national_ids.map(national_id => {
-    return [
-      national_id.id,
-      national_id.FPG_logs_id,
-      `"${national_id.national_id_number}"`,
-      `"${national_id.original_text.replace(/"/g, '""')}"`,
-      national_id.created_at,
-      national_id.updated_at
-    ].join(',');
-  });
-  return csv_header + csv_rows.join('\n');
+function escape_csv_field(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
 }
 
-/**
- * Generates filename with timestamp
- */
-function generate_file_name(start_time, end_time, prefix = 'national_ids') {
-  return `${prefix}_${start_time.replace(/:/g, '-')}_to_${end_time.replace(/:/g, '-')}.csv`;
+function national_id_to_csv_row(record) {
+  return [
+    record.id,
+    record.FPG_logs_id,
+    escape_csv_field(record.national_id_number),
+    escape_csv_field(record.original_text),
+    record.created_at,
+    record.updated_at
+  ].join(',');
 }
 
-/**
- * Creates nodemailer transporter
- */
-function create_email_transporter(email_config) {
+function convert_to_csv(records) {
+  const header = 'id,FPG_logs_id,national_id_number,original_text,created_at,updated_at';
+  const rows = records.map(national_id_to_csv_row);
+  return [header, ...rows].join('\n');
+}
+
+function generate_filename(start_time, end_time) {
+  const sanitize = (t) => t.replace(/:/g, '-');
+  return `national_ids_${sanitize(start_time)}_to_${sanitize(end_time)}.csv`;
+}
+
+function create_transporter(config) {
   return nodemailer.createTransport({
-    host: email_config.host,
-    port: email_config.port,
-    secure: email_config.secure,
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
     auth: {
-      user: email_config.user,
-      pass: email_config.pass
+      user: config.user,
+      pass: config.pass
     }
   });
 }
 
-/**
- * Prepares email options with CSV attachment
- */
-function prepare_email_options(email_config, email, file_name, csv_content, record_count, start_time, end_time) {
+function build_subject(start_time, end_time) {
+  return `National IDs Export - ${start_time} to ${end_time}`;
+}
+
+function build_text_body(start_time, end_time, count) {
+  return `National IDs Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${count}`;
+}
+
+function build_html_body(start_time, end_time, count) {
+  return `
+    <h3>National IDs Export</h3>
+    <p><strong>Period:</strong> ${start_time} to ${end_time}</p>
+    <p><strong>Total records:</strong> ${count}</p>
+  `;
+}
+
+function build_attachment(file_name, csv_content) {
   return {
-    from: email_config.from,
-    to: email,
-    subject: `National IDs Export - ${start_time} to ${end_time}`,
-    text: `National IDs Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${record_count}`,
-    html: `<h3>National IDs Export</h3>
-           <p><strong>Period:</strong> ${start_time} to ${end_time}</p>
-           <p><strong>Total records:</strong> ${record_count}</p>`,
-    attachments: [
-      {
-        filename: file_name,
-        content: csv_content,
-        contentType: 'text/csv'
-      }
-    ]
+    filename: file_name,
+    content: csv_content,
+    contentType: 'text/csv'
   };
 }
 
-/**
- * Sends email to a single recipient
- */
-async function send_email_to_recipient(transporter, email_config, email, file_name, csv_content, record_count, start_time, end_time) {
-  log_action('EMAIL_NATIONAL_ID_CSV_SEND_ATTEMPT', `to: ${email}, fileName: ${file_name}`);
+function build_mail_options(config, email, file_name, csv_content, count, start_time, end_time) {
+  return {
+    from: config.from,
+    to: email,
+    subject: build_subject(start_time, end_time),
+    text: build_text_body(start_time, end_time, count),
+    html: build_html_body(start_time, end_time, count),
+    attachments: [build_attachment(file_name, csv_content)]
+  };
+}
+
+async function send_email(transporter, mail_options) {
+  await transporter.sendMail(mail_options);
+}
+
+async function send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time) {
+  log_action('EMAIL_NATIONAL_ID_CSV_SEND_ATTEMPT', `to: ${email}`);
+
   try {
-    const mail_options = prepare_email_options(email_config, email, file_name, csv_content, record_count, start_time, end_time);
-    await transporter.sendMail(mail_options);
+    const mail_options = build_mail_options(config, email, file_name, csv_content, count, start_time, end_time);
+    await send_email(transporter, mail_options);
     log_action('EMAIL_NATIONAL_ID_CSV_SEND_SUCCESS', `to: ${email}`);
     return { email, success: true };
-  } catch (send_err) {
-    log_action('EMAIL_NATIONAL_ID_CSV_SEND_ERROR', `to: ${email}, error: ${send_err.message}`);
-    return { email, success: false, error: send_err.message };
+  } catch (err) {
+    log_action('EMAIL_NATIONAL_ID_CSV_SEND_ERROR', `to: ${email}, error: ${err.message}`);
+    return { email, success: false, error: err.message };
   }
 }
 
-/**
- * Sends emails to all recipients
- */
-async function send_emails_to_all_recipients(transporter, email_config, emails, file_name, csv_content, record_count, start_time, end_time) {
+async function send_to_all_recipients(transporter, config, emails, file_name, csv_content, count, start_time, end_time) {
   const results = [];
+
   for (const email of emails) {
-    const result = await send_email_to_recipient(transporter, email_config, email, file_name, csv_content, record_count, start_time, end_time);
+    const result = await send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time);
     results.push(result);
   }
+
   return results;
 }
 
 async function email_national_id_csv_service(email_config, start_time, end_time, emails) {
-  const db_path = path.join(__dirname, '../FPG.db');
-  const db = new sqlite3.Database(db_path);
+  const db = open_database();
+
   try {
     log_action('EMAIL_NATIONAL_ID_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
-    const national_ids = await query_national_ids_from_database(db, start_time, end_time);
+
+    const national_ids = await query_national_ids(db, start_time, end_time);
     log_action('EMAIL_NATIONAL_ID_CSV_QUERY_SUCCESS', `Found ${national_ids.length} national IDs`);
+
     if (national_ids.length === 0) {
       log_action('EMAIL_NATIONAL_ID_CSV_NO_DATA', 'No national IDs found in the specified time range');
-      db.close();
       return { success: false, message: 'No national IDs found in the specified time range' };
     }
-    const csv_content = convert_national_ids_to_csv(national_ids);
+
+    const csv_content = convert_to_csv(national_ids);
     log_action('EMAIL_NATIONAL_ID_CSV_GENERATED', `CSV size: ${csv_content.length} bytes`);
-    const file_name = generate_file_name(start_time, end_time, 'national_ids');
-    const transporter = create_email_transporter(email_config);
-    const results = await send_emails_to_all_recipients(
+
+    const file_name = generate_filename(start_time, end_time);
+    const transporter = create_transporter(email_config);
+
+    const results = await send_to_all_recipients(
       transporter,
       email_config,
       emails,
@@ -155,18 +158,20 @@ async function email_national_id_csv_service(email_config, start_time, end_time,
       start_time,
       end_time
     );
-    db.close();
+
     return {
       success: true,
       file_name,
       record_count: national_ids.length,
       sent_to: results
     };
-  } catch (error) {
-    log_action('EMAIL_NATIONAL_ID_CSV_ERROR', `error: ${error.message}`);
+
+  } catch (err) {
+    log_action('EMAIL_NATIONAL_ID_CSV_ERROR', `error: ${err.message}`);
+    throw err;
+  } finally {
     db.close();
-    throw error;
   }
 }
 
-module.exports = email_national_id_csv_service;
+module.exports = { email_national_id_csv_service };

@@ -1,26 +1,14 @@
 const SERVICE_FILE_NAME = 'services/email_iban_csv_service.js';
 const FUNCTION_NAME = 'email_iban_csv_service';
 
-/**
- * Email IBAN CSV Service
- * 
- * This service extracts IBAN records from the database within a specified time range,
- * converts them to CSV format, and sends them as email attachments to recipients.
- */
-
 const { log_action } = require('../debug/logger');
-const nodemailer = require('nodemailer');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const open_database = require('./helper/open_database');
+const escape_csv_field = require('./helper/escape_csv_field');
+const generate_filename = require('./helper/email_generate_filename');
+const create_transporter = require('./helper/email_create_transporter');
+const send_to_all_recipients = require('./helper/email_send_to_all_recipients');
 
-// ============================================
-// Helper Functions
-// ============================================
-
-/**
- * Queries IBANs from database within time range
- */
-function query_ibans_from_database(db, start_time, end_time) {
+function query_ibans(db, start_time, end_time) {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT id, FPG_logs_id, iban_number, original_text, created_at, updated_at
@@ -28,125 +16,69 @@ function query_ibans_from_database(db, start_time, end_time) {
       WHERE created_at >= ? AND created_at <= ?
       ORDER BY created_at ASC
     `;
-    
     db.all(query, [start_time, end_time], (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
+      err ? reject(err) : resolve(rows);
     });
   });
 }
 
-/**
- * Converts IBAN data to CSV format
- */
-function convert_ibans_to_csv(ibans) {
-  const csv_header = 'id,FPG_logs_id,iban_number,original_text,created_at,updated_at\n';
-  const csv_rows = ibans.map(iban => {
-    return [
-      iban.id,
-      iban.FPG_logs_id,
-      `"${iban.iban_number}"`,
-      `"${iban.original_text.replace(/"/g, '""')}"`,
-      iban.created_at,
-      iban.updated_at
-    ].join(',');
-  });
-  return csv_header + csv_rows.join('\n');
+function iban_to_csv_row(record) {
+  return [
+    record.id,
+    record.FPG_logs_id,
+    escape_csv_field(record.iban_number),
+    escape_csv_field(record.original_text),
+    record.created_at,
+    record.updated_at
+  ].join(',');
 }
 
-/**
- * Generates filename with timestamp
- */
-function generate_file_name(start_time, end_time, prefix = 'ibans') {
-  return `${prefix}_${start_time.replace(/:/g, '-')}_to_${end_time.replace(/:/g, '-')}.csv`;
+function convert_to_csv(records) {
+  const header = 'id,FPG_logs_id,iban_number,original_text,created_at,updated_at';
+  const rows = records.map(iban_to_csv_row);
+  return [header, ...rows].join('\n');
 }
 
-/**
- * Creates nodemailer transporter
- */
-function create_email_transporter(email_config) {
-  return nodemailer.createTransport({
-    host: email_config.host,
-    port: email_config.port,
-    secure: email_config.secure,
-    auth: {
-      user: email_config.user,
-      pass: email_config.pass
-    }
-  });
+function build_subject(start_time, end_time) {
+  return `IBAN Export - ${start_time} to ${end_time}`;
 }
 
-/**
- * Prepares email options with CSV attachment
- */
-function prepare_email_options(email_config, email, file_name, csv_content, record_count, start_time, end_time) {
-  return {
-    from: email_config.from,
-    to: email,
-    subject: `IBAN Export - ${start_time} to ${end_time}`,
-    text: `IBAN Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${record_count}`,
-    html: `<h3>IBAN Export</h3>
-           <p><strong>Period:</strong> ${start_time} to ${end_time}</p>
-           <p><strong>Total records:</strong> ${record_count}</p>`,
-    attachments: [
-      {
-        filename: file_name,
-        content: csv_content,
-        contentType: 'text/csv'
-      }
-    ]
-  };
+function build_text_body(start_time, end_time, count) {
+  return `IBAN Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${count}`;
 }
 
-/**
- * Sends email to a single recipient
- */
-async function send_email_to_recipient(transporter, email_config, email, file_name, csv_content, record_count, start_time, end_time) {
-  log_action('EMAIL_IBAN_CSV_SEND_ATTEMPT', `to: ${email}, fileName: ${file_name}`);
-  try {
-    const mail_options = prepare_email_options(email_config, email, file_name, csv_content, record_count, start_time, end_time);
-    await transporter.sendMail(mail_options);
-    log_action('EMAIL_IBAN_CSV_SEND_SUCCESS', `to: ${email}`);
-    return { email, success: true };
-  } catch (send_err) {
-    log_action('EMAIL_IBAN_CSV_SEND_ERROR', `to: ${email}, error: ${send_err.message}`);
-    return { email, success: false, error: send_err.message };
-  }
+function build_html_body(start_time, end_time, count) {
+  return `
+    <h3>IBAN Export</h3>
+    <p><strong>Period:</strong> ${start_time} to ${end_time}</p>
+    <p><strong>Total records:</strong> ${count}</p>
+  `;
 }
-
-/**
- * Sends emails to all recipients
- */
-async function send_emails_to_all_recipients(transporter, email_config, emails, file_name, csv_content, record_count, start_time, end_time) {
-  const results = [];
-  for (const email of emails) {
-    const result = await send_email_to_recipient(transporter, email_config, email, file_name, csv_content, record_count, start_time, end_time);
-    results.push(result);
-  }
-  return results;
-}
-
 
 async function email_iban_csv_service(email_config, start_time, end_time, emails) {
-  const db_path = path.join(__dirname, '../FPG.db');
-  const db = new sqlite3.Database(db_path);
+  const db = open_database();
+
   try {
     log_action('EMAIL_IBAN_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
-    const ibans = await query_ibans_from_database(db, start_time, end_time);
+
+    const ibans = await query_ibans(db, start_time, end_time);
     log_action('EMAIL_IBAN_CSV_QUERY_SUCCESS', `Found ${ibans.length} IBANs`);
+
     if (ibans.length === 0) {
       log_action('EMAIL_IBAN_CSV_NO_DATA', 'No IBANs found in the specified time range');
-      db.close();
       return { success: false, message: 'No IBANs found in the specified time range' };
     }
-    const csv_content = convert_ibans_to_csv(ibans);
+
+    const csv_content = convert_to_csv(ibans);
     log_action('EMAIL_IBAN_CSV_GENERATED', `CSV size: ${csv_content.length} bytes`);
-    const file_name = generate_file_name(start_time, end_time, 'ibans');
-    const transporter = create_email_transporter(email_config);
-    const results = await send_emails_to_all_recipients(
+
+    const file_name = generate_filename('ibans', start_time, end_time);
+    const transporter = create_transporter(email_config);
+    const subject = build_subject(start_time, end_time);
+    const text_body = build_text_body(start_time, end_time, ibans.length);
+    const html_body = build_html_body(start_time, end_time, ibans.length);
+
+    const results = await send_to_all_recipients(
       transporter,
       email_config,
       emails,
@@ -154,20 +86,27 @@ async function email_iban_csv_service(email_config, start_time, end_time, emails
       csv_content,
       ibans.length,
       start_time,
-      end_time
+      end_time,
+      subject,
+      text_body,
+      html_body,
+      log_action,
+      'EMAIL_IBAN_CSV'
     );
-    db.close();
+
     return {
       success: true,
       file_name,
       record_count: ibans.length,
       sent_to: results
     };
-  } catch (error) {
-    log_action('EMAIL_IBAN_CSV_ERROR', `error: ${error.message}`);
+
+  } catch (err) {
+    log_action('EMAIL_IBAN_CSV_ERROR', `error: ${err.message}`);
+    throw err;
+  } finally {
     db.close();
-    throw error;
   }
 }
 
-module.exports = email_iban_csv_service;
+module.exports = { email_iban_csv_service };

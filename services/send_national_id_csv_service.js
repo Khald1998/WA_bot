@@ -1,109 +1,87 @@
-const SERVICE_FILE_NAME = 'services/send_national_id_csv_service.js';
-const FUNCTION_NAME = 'send_national_id_csv_service';
-// Service logic for extracting national IDs within a time range, converting to CSV, and sending to WhatsApp
+const service_file_name = 'services/send_national_id_csv_service.js';
+const function_name = 'send_national_id_csv_service';
 
 const { log_action } = require('../debug/logger');
-const { MessageMedia } = require('whatsapp-web.js');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const open_database = require('./helper/open_database');
+const escape_csv_field = require('./helper/escape_csv_field');
+const create_csv_media = require('./helper/create_csv_media');
+const send_to_all_numbers = require('./helper/send_to_all_numbers');
 
-/**
- * Sends national IDs created between start and end time as a CSV file to WhatsApp numbers
- * @param {Object} client - WhatsApp client instance
- * @param {string} startTime - Start time in ISO format (e.g., '2024-01-01T00:00:00')
- * @param {string} endTime - End time in ISO format (e.g., '2024-12-31T23:59:59')
- * @param {Array<string>} numbers - Array of WhatsApp numbers to send the CSV to
- * @returns {Promise<Object>} - Result object with success status
- */
-async function send_national_id_csv_service(client, startTime, endTime, numbers) {
-  const dbPath = path.join(__dirname, '../FPG.db');
-  const db = new sqlite3.Database(dbPath);
+function query_national_ids(db, start_time, end_time) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT id, FPG_logs_id, national_id_number, original_text, created_at, updated_at
+      FROM national_id
+      WHERE created_at >= ? AND created_at <= ?
+      ORDER BY created_at ASC
+    `;
+    db.all(query, [start_time, end_time], (err, rows) => {
+      err ? reject(err) : resolve(rows);
+    });
+  });
+}
+
+function national_id_to_csv_row(record) {
+  return [
+    record.id,
+    record.FPG_logs_id,
+    escape_csv_field(record.national_id_number),
+    escape_csv_field(record.original_text),
+    record.created_at,
+    record.updated_at
+  ].join(',');
+}
+
+function convert_to_csv(records) {
+  const header = 'id,FPG_logs_id,national_id_number,original_text,created_at,updated_at';
+  const rows = records.map(national_id_to_csv_row);
+  return [header, ...rows].join('\n');
+}
+
+function generate_filename(start_time, end_time) {
+  const sanitize = (t) => t.replace(/:/g, '-');
+  return `national_ids_${sanitize(start_time)}_to_${sanitize(end_time)}.csv`;
+}
+
+function build_caption(start_time, end_time, count) {
+  return `National IDs Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${count}`;
+}
+
+async function send_national_id_csv_service(client, start_time, end_time, numbers) {
+  const db = open_database();
 
   try {
-    log_action('NATIONAL_ID_CSV_QUERY_ATTEMPT', `startTime: ${startTime}, endTime: ${endTime}`);
+    log_action('NATIONAL_ID_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
-    // Query national IDs from database within the time range
-    const nationalIds = await new Promise((resolve, reject) => {
-      const query = `
-        SELECT id, FPG_logs_id, national_id_number, original_text, created_at, updated_at
-        FROM national_id
-        WHERE created_at >= ? AND created_at <= ?
-        ORDER BY created_at ASC
-      `;
-      
-      db.all(query, [startTime, endTime], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+    const national_ids = await query_national_ids(db, start_time, end_time);
+    log_action('NATIONAL_ID_CSV_QUERY_SUCCESS', `Found ${national_ids.length} national IDs`);
 
-    log_action('NATIONAL_ID_CSV_QUERY_SUCCESS', `Found ${nationalIds.length} national IDs`);
-
-    if (nationalIds.length === 0) {
+    if (national_ids.length === 0) {
       log_action('NATIONAL_ID_CSV_NO_DATA', 'No national IDs found in the specified time range');
-      db.close();
       return { success: false, message: 'No national IDs found in the specified time range' };
     }
 
-    // Convert to CSV format
-    const csvHeader = 'id,FPG_logs_id,national_id_number,original_text,created_at,updated_at\n';
-    const csvRows = nationalIds.map(nationalId => {
-      return [
-        nationalId.id,
-        nationalId.FPG_logs_id,
-        `"${nationalId.national_id_number}"`,
-        `"${nationalId.original_text.replace(/"/g, '""')}"`, // Escape quotes in CSV
-        nationalId.created_at,
-        nationalId.updated_at
-      ].join(',');
-    });
-    const csvContent = csvHeader + csvRows.join('\n');
+    const csv_content = convert_to_csv(national_ids);
+    log_action('NATIONAL_ID_CSV_GENERATED', `CSV size: ${csv_content.length} bytes`);
 
-    log_action('NATIONAL_ID_CSV_GENERATED', `CSV size: ${csvContent.length} bytes`);
+    const file_name = generate_filename(start_time, end_time);
+    const media = create_csv_media(csv_content, file_name);
+    const caption = build_caption(start_time, end_time, national_ids.length);
 
-    // Create MessageMedia from CSV buffer
-    const csvBuffer = Buffer.from(csvContent, 'utf-8');
-    const base64Data = csvBuffer.toString('base64');
-    const fileName = `national_ids_${startTime.replace(/:/g, '-')}_to_${endTime.replace(/:/g, '-')}.csv`;
-    
-    const media = new MessageMedia('text/csv', base64Data, fileName);
-
-    // Send to all numbers in the list
-    const results = [];
-    for (const number of numbers) {
-      const normalized = number.replace(/\D/g, '');
-      const chat_id = `${normalized}@c.us`;
-
-      log_action('NATIONAL_ID_CSV_SEND_ATTEMPT', `to: ${chat_id}, fileName: ${fileName}`);
-
-      try {
-        await client.sendMessage(chat_id, media, {
-          caption: `National IDs Export\nPeriod: ${startTime} to ${endTime}\nTotal records: ${nationalIds.length}`
-        });
-        log_action('NATIONAL_ID_CSV_SEND_SUCCESS', `to: ${chat_id}`);
-        results.push({ number: chat_id, success: true });
-      } catch (sendErr) {
-        log_action('NATIONAL_ID_CSV_SEND_ERROR', `to: ${chat_id}, error: ${sendErr.message}`);
-        results.push({ number: chat_id, success: false, error: sendErr.message });
-      }
-    }
-
-    db.close();
+    const results = await send_to_all_numbers(client, media, numbers, caption, log_action, 'NATIONAL_ID_CSV');
 
     return {
       success: true,
-      fileName: fileName,
-      recordCount: nationalIds.length,
-      sentTo: results
+      file_name,
+      record_count: national_ids.length,
+      sent_to: results
     };
 
   } catch (err) {
     log_action('NATIONAL_ID_CSV_ERROR', `error: ${err.message}`);
-    db.close();
     throw err;
+  } finally {
+    db.close();
   }
 }
 
