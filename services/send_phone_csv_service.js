@@ -7,14 +7,7 @@ const { MessageMedia } = require('whatsapp-web.js');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
-/**
- * Sends phone numbers created between start and end time as a CSV file to WhatsApp numbers
- * @param {Object} client - WhatsApp client instance
- * @param {string} startTime - Start time in ISO format (e.g., '2024-01-01T00:00:00')
- * @param {string} endTime - End time in ISO format (e.g., '2024-12-31T23:59:59')
- * @param {Array<string>} numbers - Array of WhatsApp numbers to send the CSV to
- * @returns {Promise<Object>} - Result object with success status
- */
+
 async function send_phone_csv_service(client, startTime, endTime, numbers) {
   const dbPath = path.join(__dirname, '../FPG.db');
   const db = new sqlite3.Database(dbPath);
