@@ -109,4 +109,4 @@ async function email_iban_csv_service(email_config, start_time, end_time, emails
   }
 }
 
-module.exports = { email_iban_csv_service };
+module.exports = email_iban_csv_service;
