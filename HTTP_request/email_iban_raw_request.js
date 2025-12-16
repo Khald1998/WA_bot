@@ -1,10 +1,5 @@
 const axios = require('axios');
 
-
-const now = new Date();
-const end_time = now.toISOString();
-const start_time = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-
 const email_config = {
   service: 'gmail',
   host: 'smtp.gmail.com',
@@ -17,15 +12,13 @@ const email_config = {
 
 const data = {
   email_config,
-  start_time,
-  end_time,
   emails: ["arraaa1999@gmail.com", "aalasmari@saib.com.sa"]
 };
 
-axios.post('http://localhost:3000/email-iban-csv', data)
+axios.post('http://localhost:3000/email-iban-raw', data)
   .then(res => {
-    console.log('Email IBAN CSV sent:', res.data);
+    console.log('Email IBAN Raw sent:', res.data);
   })
   .catch(err => {
-    console.error('Error sending Email IBAN CSV:', err.response ? err.response.data : err.message);
+    console.error('Error sending Email IBAN Raw:', err.response ? err.response.data : err.message);
   });

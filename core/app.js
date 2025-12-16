@@ -16,6 +16,7 @@ const send_iban_csv_api = require('../APIs/send_iban_csv_api');
 const send_phone_csv_api = require('../APIs/send_phone_csv_api');
 const send_national_id_csv_api = require('../APIs/send_national_id_csv_api');
 const email_iban_csv_api = require('../APIs/email_iban_csv_api');
+const email_iban_raw_api = require('../APIs/email_iban_raw_api');
 const email_phone_csv_api = require('../APIs/email_phone_csv_api');
 const email_national_id_csv_api = require('../APIs/email_national_id_csv_api');
 
@@ -45,6 +46,7 @@ app.use(send_iban_csv_api(client, get_client_ready));
 app.use(send_phone_csv_api(client, get_client_ready));
 app.use(send_national_id_csv_api(client, get_client_ready));
 app.use(email_iban_csv_api());
+app.use(email_iban_raw_api());
 app.use(email_phone_csv_api());
 app.use(email_national_id_csv_api());
 
