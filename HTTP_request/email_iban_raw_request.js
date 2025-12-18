@@ -22,7 +22,8 @@ const data = {
     "kmalzahrani@saib.com.sa"
   ],
   cc: [
-    "aalasmari@saib.com.sa"
+    "aalasmari@saib.com.sa",
+    "Alharbif@saib.com.sa"
   ]
 };
 
