@@ -45,7 +45,7 @@ function build_html_body(ibans) {
   return html;
 }
 
-async function send_email(transporter, config, email, subject, text_body, html_body) {
+async function send_email(transporter, config, email, subject, text_body, html_body, cc) {
   const mail_options = {
     from: config.from,
     to: email,
@@ -53,6 +53,10 @@ async function send_email(transporter, config, email, subject, text_body, html_b
     text: text_body,
     html: html_body
   };
+  
+  if (cc && Array.isArray(cc) && cc.length > 0) {
+    mail_options.cc = cc.join(', ');
+  }
 
   return new Promise((resolve, reject) => {
     transporter.sendMail(mail_options, (err, info) => {
@@ -65,25 +69,22 @@ async function send_email(transporter, config, email, subject, text_body, html_b
   });
 }
 
-async function send_to_all_recipients(transporter, config, emails, subject, text_body, html_body) {
-  const results = [];
+async function send_to_all_recipients(transporter, config, to, subject, text_body, html_body, cc) {
+  // Send one email to all recipients
+  const to_addresses = to.join(', ');
+  log_action('EMAIL_IBAN_RAW_SEND_ATTEMPT', `to: ${to_addresses}`);
   
-  for (const email of emails) {
-    log_action('EMAIL_IBAN_RAW_SEND_ATTEMPT', `to: ${email}`);
-    try {
-      await send_email(transporter, config, email, subject, text_body, html_body);
-      log_action('EMAIL_IBAN_RAW_SEND_SUCCESS', `to: ${email}`);
-      results.push({ email, success: true });
-    } catch (err) {
-      log_action('EMAIL_IBAN_RAW_SEND_ERROR', `to: ${email}, error: ${err.message}`);
-      results.push({ email, success: false, error: err.message });
-    }
+  try {
+    await send_email(transporter, config, to_addresses, subject, text_body, html_body, cc);
+    log_action('EMAIL_IBAN_RAW_SEND_SUCCESS', `to: ${to_addresses}`);
+    return { success: true, sent_to: to };
+  } catch (err) {
+    log_action('EMAIL_IBAN_RAW_SEND_ERROR', `to: ${to_addresses}, error: ${err.message}`);
+    return { success: false, error: err.message };
   }
-  
-  return results;
 }
 
-async function email_iban_raw_service(email_config, emails) {
+async function email_iban_raw_service(email_config, to, cc) {
   try {
     log_action('EMAIL_IBAN_RAW_QUERY_ATTEMPT', 'Fetching unreported IBANs');
 
@@ -103,10 +104,11 @@ async function email_iban_raw_service(email_config, emails) {
     const results = await send_to_all_recipients(
       transporter,
       email_config,
-      emails,
+      to,
       subject,
       text_body,
-      html_body
+      html_body,
+      cc
     );
 
     // Mark IBANs as reported after successful email sending
@@ -115,10 +117,12 @@ async function email_iban_raw_service(email_config, emails) {
     log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBANs as reported`);
 
     return {
-      success: true,
+      success: results.success,
       record_count: ibans.length,
       marked_as_reported: mark_result.changes,
-      sent_to: results
+      sent_to: results.sent_to,
+      cc: cc,
+      error: results.error
     };
 
   } catch (err) {

@@ -8,13 +8,13 @@ const { log_action } = require('../debug/logger');
 module.exports = () => {
   // POST /email-iban-raw
   router.post('/email-iban-raw', async (req, res) => {
-    const { email_config, emails } = req.body;
+    const { email_config, to, cc } = req.body;
     
     // Validate required fields
-    if (!email_config || !emails || !Array.isArray(emails) || emails.length === 0) {
+    if (!email_config || !to || !Array.isArray(to) || to.length === 0) {
       log_action('API_EMAIL_IBAN_RAW_ATTEMPT', 'Missing required fields');
       return res.status(400).json({
-        error: 'Request body must contain "email_config" and "emails" (array) fields.'
+        error: 'Request body must contain "email_config" and "to" (array) fields.'
       });
     }
 
@@ -27,7 +27,7 @@ module.exports = () => {
     }
 
     try {
-      const result = await email_iban_raw_service(email_config, emails);
+      const result = await email_iban_raw_service(email_config, to, cc);
       return res.json(result);
     } catch (err) {
       log_action('API_EMAIL_IBAN_RAW_ERROR', err.message);

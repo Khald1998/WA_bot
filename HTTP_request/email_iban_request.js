@@ -1,9 +1,9 @@
 const axios = require('axios');
 
 
-const now = new Date();
-const end_time = now.toISOString();
-const start_time = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
+const start_time = '1970-01-01T00:00:00.000Z';
+const end_time = '9999-12-31T23:59:59.999Z';
 
 const email_config = {
   service: 'gmail',
