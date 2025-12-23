@@ -1,43 +1,17 @@
 # Ignore all database files
-db/*
 FPG.db
 FPG.db-shm
 FPG.db-wal
 
 # Ignore all media files
 media/*
-# Ignore media images
-media/*.jpg
-media/*.jpeg
-media/*.png
-media/*.gif
-media/*.bmp
-media/*.webp
-media/*.tiff
-media/*.svg
+
 # Node modules and dependencies
 /node_modules
 
-# Local environment variables
-.env
-
-# Auth/session files for whatsapp-web.js
-/.wwebjs_auth
-/.wwebjs_cache
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Backup and temp files
-*.bak
-*.tmp
+# WhatsApp Web.js cache and auth
+.wwebjs_cache
+.wwebjs_auth
 
 # VS Code settings
 .vscode/
@@ -45,3 +19,6 @@ Thumbs.db
 # Package files
 /package-lock.json
 /package.json
+
+# Log files
+*.log
