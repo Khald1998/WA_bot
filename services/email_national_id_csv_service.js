@@ -88,8 +88,8 @@ function build_attachment(file_name, csv_content) {
   };
 }
 
-function build_mail_options(config, email, file_name, csv_content, count, start_time, end_time) {
-  return {
+function build_mail_options(config, email, file_name, csv_content, count, start_time, end_time, cc) {
+  const mail_options = {
     from: config.from,
     to: email,
     subject: build_subject(start_time, end_time),
@@ -97,17 +97,23 @@ function build_mail_options(config, email, file_name, csv_content, count, start_
     html: build_html_body(start_time, end_time, count),
     attachments: [build_attachment(file_name, csv_content)]
   };
+  
+  if (cc && Array.isArray(cc) && cc.length > 0) {
+    mail_options.cc = cc.join(', ');
+  }
+  
+  return mail_options;
 }
 
 async function send_email(transporter, mail_options) {
   await transporter.sendMail(mail_options);
 }
 
-async function send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time) {
+async function send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time, cc) {
   log_action('EMAIL_NATIONAL_ID_CSV_SEND_ATTEMPT', `to: ${email}`);
 
   try {
-    const mail_options = build_mail_options(config, email, file_name, csv_content, count, start_time, end_time);
+    const mail_options = build_mail_options(config, email, file_name, csv_content, count, start_time, end_time, cc);
     await send_email(transporter, mail_options);
     log_action('EMAIL_NATIONAL_ID_CSV_SEND_SUCCESS', `to: ${email}`);
     return { email, success: true };
@@ -117,18 +123,18 @@ async function send_to_recipient(transporter, config, email, file_name, csv_cont
   }
 }
 
-async function send_to_all_recipients(transporter, config, emails, file_name, csv_content, count, start_time, end_time) {
+async function send_to_all_recipients(transporter, config, to, file_name, csv_content, count, start_time, end_time, cc) {
   const results = [];
 
-  for (const email of emails) {
-    const result = await send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time);
+  for (const email of to) {
+    const result = await send_to_recipient(transporter, config, email, file_name, csv_content, count, start_time, end_time, cc);
     results.push(result);
   }
 
   return results;
 }
 
-async function email_national_id_csv_service(email_config, start_time, end_time, emails) {
+async function email_national_id_csv_service(email_config, start_time, end_time, to, cc) {
   const db = open_database();
 
   try {
@@ -151,12 +157,13 @@ async function email_national_id_csv_service(email_config, start_time, end_time,
     const results = await send_to_all_recipients(
       transporter,
       email_config,
-      emails,
+      to,
       file_name,
       csv_content,
       national_ids.length,
       start_time,
-      end_time
+      end_time,
+      cc
     );
 
     return {
@@ -174,4 +181,4 @@ async function email_national_id_csv_service(email_config, start_time, end_time,
   }
 }
 
-module.exports = { email_national_id_csv_service };
+module.exports = email_national_id_csv_service;
