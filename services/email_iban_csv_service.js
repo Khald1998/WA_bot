@@ -55,7 +55,7 @@ function build_html_body(start_time, end_time, count) {
   `;
 }
 
-async function email_iban_csv_service(email_config, start_time, end_time, emails) {
+async function email_iban_csv_service(email_config, start_time, end_time, to, cc) {
   const db = open_database();
 
   try {
@@ -81,7 +81,7 @@ async function email_iban_csv_service(email_config, start_time, end_time, emails
     const results = await send_to_all_recipients(
       transporter,
       email_config,
-      emails,
+      to,
       file_name,
       csv_content,
       ibans.length,
@@ -91,7 +91,8 @@ async function email_iban_csv_service(email_config, start_time, end_time, emails
       text_body,
       html_body,
       log_action,
-      'EMAIL_IBAN_CSV'
+      'EMAIL_IBAN_CSV',
+      cc
     );
 
     return {

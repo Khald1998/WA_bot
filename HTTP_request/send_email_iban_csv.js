@@ -19,7 +19,20 @@ const data = {
   email_config,
   start_time,
   end_time,
-  emails: ["arraaa1999@gmail.com", "aalasmari@saib.com.sa"]
+  to: [
+    "Tbinessa@saib.com.sa",
+    "Alhajoojs@saib.com.sa",
+    "Hajajalmutairi@saib.com.sa",
+    "Aalawn@saib.com.sa",
+    "Aalsuwayri@saib.com.sa",
+    "kmalzahrani@saib.com.sa",
+    "h.almutairi@saib.com.sa"
+  ],
+  cc: [
+    "aalasmari@saib.com.sa",
+    "Analshammari@saib.com.sa",
+    "Alharbif@saib.com.sa"
+  ]
 };
 
 axios.post('http://localhost:3000/email-iban-csv', data)
