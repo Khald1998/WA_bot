@@ -9,9 +9,10 @@ function parser_national_id(text) {
         return [];
     }
 
-    // 2. Find potential IDs: Matches sequences of exactly 10 digits.
-    // This includes both Western (0-9) and Eastern Arabic (٠-٩) numerals.
-    const idRegex = /[\d٠١٢٣٤٥٦٧٨٩]{10}/g;
+    // 2. Find potential IDs: Matches sequences of exactly 10 digits with word boundaries.
+    // This ensures the 10 digits are not part of a longer sequence (like IBANs).
+    // Includes both Western (0-9) and Eastern Arabic (٠-٩) numerals.
+    const idRegex = /\b[\d٠١٢٣٤٥٦٧٨٩]{10}\b/g;
     const potentialMatches = text.match(idRegex) || [];
 
     // 3. Validate each candidate and collect valid ones
