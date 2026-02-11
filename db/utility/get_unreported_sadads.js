@@ -1,0 +1,27 @@
+// db/utility/get_unreported_sadads.js
+// Function to retrieve all SADAD records with is_reported=0
+
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('./FPG.db');
+
+function getUnreportedSadads() {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT id, FPG_logs_id, sadad_number, original_text, created_at, updated_at, is_reported
+            FROM sadad
+            WHERE is_reported = 0
+            ORDER BY created_at ASC
+        `;
+        
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                console.error('Error fetching unreported SADADs:', err.message);
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
+module.exports = getUnreportedSadads;

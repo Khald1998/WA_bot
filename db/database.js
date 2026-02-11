@@ -7,6 +7,7 @@ const FPG_logs = require('./schema/FPG_logs');
 const IBAN = require('./schema/IBAN');
 const national_id = require('./schema/national_id');
 const phone = require('./schema/phone');
+const sadad = require('./schema/sadad');
 
 const dbPath = path.join(__dirname, '../FPG.db');
 const db = new sqlite3.Database(dbPath);
@@ -29,6 +30,9 @@ db.serialize(() => {
     });
     db.run(phone, (err) => {
         if (err) console.error('Error creating phone table:', err.message);
+    });
+    db.run(sadad, (err) => {
+        if (err) console.error('Error creating sadad table:', err.message);
     });
 });
 
