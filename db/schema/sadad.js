@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS sadad (
     id TEXT PRIMARY KEY NOT NULL,
     FPG_logs_id TEXT NOT NULL,
     sadad_number TEXT NOT NULL,
+    sadad_type TEXT NOT NULL,
     original_text TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
