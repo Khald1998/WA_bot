@@ -79,54 +79,59 @@ function collect_evidence_data_sadad_version() {
     const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
             console.error('Error opening database:', err);
-            return;
         }
     });
 
-    get_all_IBAN_log_ids().then(ibanLogIds => {
+    return get_all_IBAN_log_ids().then(ibanLogIds => {
         const ibanLogIdSet = new Set(ibanLogIds);
 
-        get_all_FPG_logs((err, logs) => {
-            if (err) {
-                console.error('Error fetching FPG logs:', err);
+        return new Promise((resolve, reject) => {
+            get_all_FPG_logs((err, logs) => {
+                if (err) {
+                    console.error('Error fetching FPG logs:', err);
+                    db.close();
+                    return reject(err);
+                }
+
+                // Process all logs (no filtering by is_processed)
+                console.log(`[${new Date().toISOString()}] Found ${logs.length} logs to process for SADAD`);
+
+                const evidence_results = [];
+
+                logs.forEach((log) => {
+                    // Skip if this log already has an IBAN record
+                    if (ibanLogIdSet.has(log.mid)) {
+                        return;
+                    }
+
+                    const result = process_log(log);
+
+                    if (result) {
+                        evidence_results.push(result);
+                        store_evidence(result);
+                    }
+                });
+
+                console.log(`[${new Date().toISOString()}] Processing complete. Found ${evidence_results.length} logs with SADAD evidence.`);
+                if (evidence_results.length > 0) {
+                    console.log('SADAD evidence stored in sadad table.');
+                }
+
                 db.close();
-                return;
-            }
-
-            // Process all logs (no filtering by is_processed)
-            console.log(`[${new Date().toISOString()}] Found ${logs.length} logs to process for SADAD`);
-
-            const evidence_results = [];
-
-            logs.forEach((log) => {
-                // Skip if this log already has an IBAN record
-                if (ibanLogIdSet.has(log.mid)) {
-                    return;
-                }
-
-                const result = process_log(log);
-
-                if (result) {
-                    evidence_results.push(result);
-                    store_evidence(result);
-                }
+                resolve(evidence_results);
             });
-
-            console.log(`[${new Date().toISOString()}] Processing complete. Found ${evidence_results.length} logs with SADAD evidence.`);
-            if (evidence_results.length > 0) {
-                console.log('SADAD evidence stored in sadad table.');
-            }
-
-            db.close();
         });
     }).catch(err => {
         console.error('Error fetching IBAN log IDs:', err);
         db.close();
+        throw err;
     });
 }
 
-// To run the collection process once, uncomment below:
-collect_evidence_data_sadad_version();
+// Run directly when invoked as a script; skip when required as a module
+if (require.main === module) {
+    collect_evidence_data_sadad_version();
+}
 
 module.exports = {
     collect_evidence_data_sadad_version

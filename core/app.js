@@ -20,6 +20,9 @@ const email_iban_raw_api = require('../APIs/email_iban_raw_api');
 const email_phone_csv_api = require('../APIs/email_phone_csv_api');
 const email_national_id_csv_api = require('../APIs/email_national_id_csv_api');
 const email_national_id_raw_api = require('../APIs/email_national_id_raw_api');
+const collect_evidence_sadad_api = require('../APIs/collect_evidence_sadad_api');
+const email_sadad_csv_api = require('../APIs/email_sadad_csv_api');
+const email_sadad_raw_api = require('../APIs/email_sadad_raw_api');
 
 const app = express();
 app.use(express.json());
@@ -51,6 +54,9 @@ app.use(email_iban_raw_api());
 app.use(email_phone_csv_api());
 app.use(email_national_id_csv_api());
 app.use(email_national_id_raw_api());
+app.use(collect_evidence_sadad_api);
+app.use(email_sadad_csv_api());
+app.use(email_sadad_raw_api());
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
