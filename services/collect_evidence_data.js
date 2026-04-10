@@ -135,8 +135,8 @@ function store_evidence(result) {
 
 
 function collect_evidence_data() {
-    const dbPath = path.join(__dirname, '../FPG.db');
-    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
+    const db_path = path.join(__dirname, '../FPG.db');
+    const db = new sqlite3.Database(db_path, sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
             console.error('Error opening database:', err);
             return;

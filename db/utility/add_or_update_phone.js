@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function addOrUpdatePhone({ id, FPG_logs_id, phone_number, original_text, created_at, updated_at }) {
+function add_or_update_phone({ id, FPG_logs_id, phone_number, original_text, created_at, updated_at }) {
     const query = `
         INSERT INTO phone (id, FPG_logs_id, phone_number, original_text, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -24,4 +24,4 @@ function addOrUpdatePhone({ id, FPG_logs_id, phone_number, original_text, create
     });
 }
 
-module.exports = addOrUpdatePhone;
+module.exports = add_or_update_phone;

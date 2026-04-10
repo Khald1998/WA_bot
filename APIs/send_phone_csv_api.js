@@ -15,16 +15,16 @@ module.exports = (client, is_client_ready) => {
       });
     }
 
-    const { startTime, endTime, numbers } = req.body;
-    if (!startTime || !endTime || !numbers || !Array.isArray(numbers) || numbers.length === 0) {
+    const { start_time, end_time, numbers } = req.body;
+    if (!start_time || !end_time || !numbers || !Array.isArray(numbers) || numbers.length === 0) {
       log_action('API_SEND_PHONE_CSV_ATTEMPT', 'Missing required fields');
       return res.status(400).json({
-        error: 'Request body must contain "startTime", "endTime", and "numbers" (array) fields.'
+        error: 'Request body must contain "start_time", "end_time", and "numbers" (array) fields.'
       });
     }
 
     try {
-      const result = await send_phone_csv_service(client, startTime, endTime, numbers);
+      const result = await send_phone_csv_service(client, start_time, end_time, numbers);
       return res.json(result);
     } catch (err) {
       log_action('API_SEND_PHONE_CSV_ERROR', err.message);

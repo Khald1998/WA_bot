@@ -12,16 +12,16 @@ async function get_all_group_chat_history(group_id, client) {
         // const chats = await client.getChats();
         
         // // Find the specific group chat by ID
-        // const groupChat = chats.find(chat => chat.id._serialized === group_id);
-        const groupChat = await client.getChatById(group_id);
+        // const group_chat = chats.find(chat => chat.id._serialized === group_id);
+        const group_chat = await client.getChatById(group_id);
 
         // Check if group chat exists
-        if (!groupChat) {
+        if (!group_chat) {
             throw new Error(`Group chat with ID ${group_id} not found`);
         }
         
         // Fetch all messages with no limit (-1 or a very large number)
-        const messages = await groupChat.fetchMessages({ limit: Number.MAX_SAFE_INTEGER });
+        const messages = await group_chat.fetchMessages({ limit: Number.MAX_SAFE_INTEGER });
         
         // Print the number of messages
         console.log('Total messages:', messages.length);

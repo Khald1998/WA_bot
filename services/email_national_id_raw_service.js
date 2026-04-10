@@ -2,8 +2,8 @@ const SERVICE_FILE_NAME = 'services/email_national_id_raw_service.js';
 const FUNCTION_NAME = 'email_national_id_raw_service';
 
 const { log_action } = require('../debug/logger');
-const getUnreportedNationalIds = require('../db/utility/get_unreported_national_ids');
-const markNationalIdsAsReported = require('../db/utility/mark_national_ids_as_reported');
+const get_unreported_national_ids = require('../db/utility/get_unreported_national_ids');
+const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');
 const create_transporter = require('./helper/email_create_transporter');
 
 function build_subject(count) {
@@ -88,7 +88,7 @@ async function email_national_id_raw_service(email_config, to, cc) {
   try {
     log_action('EMAIL_NATIONAL_ID_RAW_QUERY_ATTEMPT', 'Fetching unreported national IDs');
 
-    const national_ids = await getUnreportedNationalIds();
+    const national_ids = await get_unreported_national_ids();
     log_action('EMAIL_NATIONAL_ID_RAW_QUERY_SUCCESS', `Found ${national_ids.length} unreported national IDs`);
 
     if (national_ids.length === 0) {
@@ -109,7 +109,7 @@ async function email_national_id_raw_service(email_config, to, cc) {
 
     // Mark all national IDs as reported
     const national_id_ids = national_ids.map(n => n.id);
-    const mark_result = await markNationalIdsAsReported(national_id_ids);
+    const mark_result = await mark_national_ids_as_reported(national_id_ids);
     log_action('EMAIL_NATIONAL_ID_RAW_MARK_REPORTED', `Marked ${mark_result.changes} national IDs as reported`);
 
     return {

@@ -8,9 +8,9 @@ async function get_individual_chats(client) {
   try {
     log_action('INDIVIDUAL_CHATS_ATTEMPT', 'Fetching individual chats');
     const chats = await client.getChats();
-    const individualChats = chats.filter(chat => !chat.isGroup);
-    log_action('INDIVIDUAL_CHATS_SUCCESS', `Found ${individualChats.length} individual chats`);
-    return individualChats.map(chat => ({
+    const individual_chats = chats.filter(chat => !chat.isGroup);
+    log_action('INDIVIDUAL_CHATS_SUCCESS', `Found ${individual_chats.length} individual chats`);
+    return individual_chats.map(chat => ({
       id: chat.id._serialized,
       name: chat.name || chat.id.user
     }));

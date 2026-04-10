@@ -70,9 +70,9 @@ app.listen(port, () => {
   console.log('   → POST /message_count_in_group  { "group_id": "<group_id>" }');
   console.log('   → GET  /group-chat-history/:group_id');
   console.log('   → POST /validate-chat-completeness');
-  console.log('   → POST /send-iban-csv           { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
-  console.log('   → POST /send-phone-csv          { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
-  console.log('   → POST /send-national-id-csv    { "startTime": "<ISO_datetime>", "endTime": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /send-iban-csv           { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /send-phone-csv          { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
+  console.log('   → POST /send-national-id-csv    { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "numbers": ["<recipient>", ...] }');
   console.log('   → POST /email-iban-csv          { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
   console.log('   → POST /email-phone-csv         { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
   console.log('   → POST /email-national-id-csv   { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');

@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function getUnreportedNationalIds() {
+function get_unreported_national_ids() {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT id, FPG_logs_id, national_id_number, original_text, created_at, updated_at, is_reported
@@ -24,4 +24,4 @@ function getUnreportedNationalIds() {
     });
 }
 
-module.exports = getUnreportedNationalIds;
+module.exports = get_unreported_national_ids;

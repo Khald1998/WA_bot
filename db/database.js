@@ -9,8 +9,8 @@ const national_id = require('./schema/national_id');
 const phone = require('./schema/phone');
 const sadad = require('./schema/sadad');
 
-const dbPath = path.join(__dirname, '../FPG.db');
-const db = new sqlite3.Database(dbPath);
+const db_path = path.join(__dirname, '../FPG.db');
+const db = new sqlite3.Database(db_path);
 
 // Enable WAL mode for concurrent reads and writes
 db.run('PRAGMA journal_mode = WAL;', (err) => {

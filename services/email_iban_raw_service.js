@@ -2,8 +2,8 @@ const SERVICE_FILE_NAME = 'services/email_iban_raw_service.js';
 const FUNCTION_NAME = 'email_iban_raw_service';
 
 const { log_action } = require('../debug/logger');
-const getUnreportedIBANs = require('../db/utility/get_unreported_IBANs');
-const markIbansAsReported = require('../db/utility/mark_ibans_as_reported');
+const get_unreported_ibans = require('../db/utility/get_unreported_IBANs');
+const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
 const create_transporter = require('./helper/email_create_transporter');
 
 function build_subject(count) {
@@ -88,7 +88,7 @@ async function email_iban_raw_service(email_config, to, cc) {
   try {
     log_action('EMAIL_IBAN_RAW_QUERY_ATTEMPT', 'Fetching unreported IBANs');
 
-    const ibans = await getUnreportedIBANs();
+    const ibans = await get_unreported_ibans();
     log_action('EMAIL_IBAN_RAW_QUERY_SUCCESS', `Found ${ibans.length} unreported IBANs`);
 
     if (ibans.length === 0) {
@@ -113,7 +113,7 @@ async function email_iban_raw_service(email_config, to, cc) {
 
     // Mark IBANs as reported after successful email sending
     const iban_ids = ibans.map(iban => iban.id);
-    const mark_result = await markIbansAsReported(iban_ids);
+    const mark_result = await mark_ibans_as_reported(iban_ids);
     log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBANs as reported`);
 
     return {

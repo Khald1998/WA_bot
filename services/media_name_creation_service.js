@@ -4,12 +4,12 @@ const FUNCTION_NAME = 'media_name_creation';
 const crypto = require('crypto');
 const { log_action } = require('../debug/logger');
 
-function media_name_creation(client, mediaSize, mediaTime) {
+function media_name_creation(client, media_size, media_time) {
     try {
-        const currentTime = Date.now();
-        const data = `${currentTime}_${mediaSize}_${mediaTime}`;
+        const current_time = Date.now();
+        const data = `${current_time}_${media_size}_${media_time}`;
         const hash = crypto.createHash('sha256').update(data).digest('hex');
-        log_action('MEDIA_NAME_CREATION', `size: ${mediaSize}, time: ${mediaTime}, hash: ${hash}`);
+        log_action('MEDIA_NAME_CREATION', `size: ${media_size}, time: ${media_time}, hash: ${hash}`);
         return hash;
     } catch (error) {
         error_report(client, { error_message: error.message });

@@ -18,17 +18,17 @@ function parser_phone(text) {
     // 2. Find all phone numbers in the text
     //    The second parameter is a default country code hint (e.g., 'SA' for Saudi Arabia).
     //    This helps interpret local numbers. Use undefined for strict international detection.
-    const phoneMatches = findPhoneNumbersInText(text, { defaultCountry: 'SA' });
+    const phone_matches = findPhoneNumbersInText(text, { defaultCountry: 'SA' });
 
     // 3. Extract and format the numbers
-    const extractedNumbers = phoneMatches.map(match => {
+    const extracted_numbers = phone_matches.map(match => {
         // The `number` property is a PhoneNumber object
         // Its `formatInternational()` method returns the standard E.164 format
         return match.number.formatInternational();
     });
 
     // 4. Return the list of numbers
-    return extractedNumbers;
+    return extracted_numbers;
 }
 
 module.exports = parser_phone;

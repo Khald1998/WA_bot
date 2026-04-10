@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function markIbansAsReported(iban_ids) {
+function mark_ibans_as_reported(iban_ids) {
     return new Promise((resolve, reject) => {
         if (!iban_ids || iban_ids.length === 0) {
             resolve({ changes: 0 });
@@ -29,4 +29,4 @@ function markIbansAsReported(iban_ids) {
     });
 }
 
-module.exports = markIbansAsReported;
+module.exports = mark_ibans_as_reported;

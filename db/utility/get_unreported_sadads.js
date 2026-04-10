@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function getUnreportedSadads() {
+function get_unreported_sadads() {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT id, FPG_logs_id, sadad_number, original_text, created_at, updated_at, is_reported
@@ -24,4 +24,4 @@ function getUnreportedSadads() {
     });
 }
 
-module.exports = getUnreportedSadads;
+module.exports = get_unreported_sadads;

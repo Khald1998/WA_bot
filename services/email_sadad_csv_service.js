@@ -60,7 +60,7 @@ async function email_sadad_csv_service(email_config, start_time, end_time, to, c
   const db = open_database();
 
   try {
-    log_action('EMAIL_SADAD_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
+    log_action('EMAIL_SADAD_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
     const sadads = await query_sadads(db, start_time, end_time);
     log_action('EMAIL_SADAD_CSV_QUERY_SUCCESS', `Found ${sadads.length} SADADs`);

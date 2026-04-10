@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function getUnreportedPhones() {
+function get_unreported_phones() {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT id, FPG_logs_id, phone_number, original_text, created_at, updated_at, is_reported
@@ -24,4 +24,4 @@ function getUnreportedPhones() {
     });
 }
 
-module.exports = getUnreportedPhones;
+module.exports = get_unreported_phones;

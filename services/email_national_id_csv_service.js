@@ -138,7 +138,7 @@ async function email_national_id_csv_service(email_config, start_time, end_time,
   const db = open_database();
 
   try {
-    log_action('EMAIL_NATIONAL_ID_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
+    log_action('EMAIL_NATIONAL_ID_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
     const national_ids = await query_national_ids(db, start_time, end_time);
     log_action('EMAIL_NATIONAL_ID_CSV_QUERY_SUCCESS', `Found ${national_ids.length} national IDs`);

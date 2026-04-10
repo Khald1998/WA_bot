@@ -2,8 +2,8 @@ const SERVICE_FILE_NAME = 'services/email_sadad_raw_service.js';
 const FUNCTION_NAME = 'email_sadad_raw_service';
 
 const { log_action } = require('../debug/logger');
-const getUnreportedSadads = require('../db/utility/get_unreported_sadads');
-const markSadadsAsReported = require('../db/utility/mark_sadads_as_reported');
+const get_unreported_sadads = require('../db/utility/get_unreported_sadads');
+const mark_sadads_as_reported = require('../db/utility/mark_sadads_as_reported');
 const create_transporter = require('./helper/email_create_transporter');
 
 function build_subject(count) {
@@ -89,7 +89,7 @@ async function email_sadad_raw_service(email_config, to, cc) {
   try {
     log_action('EMAIL_SADAD_RAW_QUERY_ATTEMPT', 'Fetching unreported SADADs');
 
-    const sadads = await getUnreportedSadads();
+    const sadads = await get_unreported_sadads();
     log_action('EMAIL_SADAD_RAW_QUERY_SUCCESS', `Found ${sadads.length} unreported SADADs`);
 
     if (sadads.length === 0) {
@@ -118,7 +118,7 @@ async function email_sadad_raw_service(email_config, to, cc) {
 
     // Mark SADADs as reported after successful email sending
     const sadad_ids = sadads.map(s => s.id);
-    const mark_result = await markSadadsAsReported(sadad_ids);
+    const mark_result = await mark_sadads_as_reported(sadad_ids);
     log_action('EMAIL_SADAD_RAW_MARK_REPORTED', `Marked ${mark_result.changes} SADADs as reported`);
 
     return {

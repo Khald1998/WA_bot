@@ -1,12 +1,12 @@
 const axios = require('axios');
 
 const now = new Date();
-const startTime = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-const endTime = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+const start_time = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+const end_time = new Date(now.setHours(23, 59, 59, 999)).toISOString();
 
 const data = {
-  startTime,
-  endTime,
+  start_time,
+  end_time,
   numbers: ["966580599359", "966538762235", "966530857472"]
 // numbers: ["966580599359"]
 };

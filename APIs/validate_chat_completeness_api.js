@@ -19,7 +19,7 @@ module.exports = (client, is_client_ready) => {
     try {
       log_action('API_VALIDATE_CHAT_START', 'Starting validation');
       const result = await validate_chat_completeness(client);
-      log_action('API_VALIDATE_CHAT_SUCCESS', `Completed: ${result.insertedCount} inserted`);
+      log_action('API_VALIDATE_CHAT_SUCCESS', `Completed: ${result.inserted_count} inserted`);
       return res.json({
         success: true,
         message: 'Chat validation completed successfully',

@@ -59,7 +59,7 @@ async function email_phone_csv_service(email_config, start_time, end_time, email
   const db = open_database();
 
   try {
-    log_action('EMAIL_PHONE_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
+    log_action('EMAIL_PHONE_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
     const phones = await query_phones(db, start_time, end_time);
     log_action('EMAIL_PHONE_CSV_QUERY_SUCCESS', `Found ${phones.length} phone numbers`);

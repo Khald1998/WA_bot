@@ -75,15 +75,15 @@ function store_evidence(result) {
 
 
 function collect_evidence_data_sadad_version() {
-    const dbPath = path.join(__dirname, '../FPG.db');
-    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
+    const db_path = path.join(__dirname, '../FPG.db');
+    const db = new sqlite3.Database(db_path, sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
             console.error('Error opening database:', err);
         }
     });
 
-    return get_all_IBAN_log_ids().then(ibanLogIds => {
-        const ibanLogIdSet = new Set(ibanLogIds);
+    return get_all_IBAN_log_ids().then(iban_log_ids => {
+        const iban_log_id_set = new Set(iban_log_ids);
 
         return new Promise((resolve, reject) => {
             get_all_FPG_logs((err, logs) => {
@@ -100,7 +100,7 @@ function collect_evidence_data_sadad_version() {
 
                 logs.forEach((log) => {
                     // Skip if this log already has an IBAN record
-                    if (ibanLogIdSet.has(log.mid)) {
+                    if (iban_log_id_set.has(log.mid)) {
                         return;
                     }
 

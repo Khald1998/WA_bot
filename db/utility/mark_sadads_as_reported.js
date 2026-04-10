@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function markSadadsAsReported(sadad_ids) {
+function mark_sadads_as_reported(sadad_ids) {
     return new Promise((resolve, reject) => {
         if (!sadad_ids || sadad_ids.length === 0) {
             resolve({ changes: 0 });
@@ -29,4 +29,4 @@ function markSadadsAsReported(sadad_ids) {
     });
 }
 
-module.exports = markSadadsAsReported;
+module.exports = mark_sadads_as_reported;

@@ -13,15 +13,15 @@ async function download_media(client, message) {
         if (!message.hasMedia) return null;
         const media = await message.downloadMedia();
         if (!media || !media.data) return null;
-        const mediaSize = Buffer.byteLength(media.data, 'base64');
-        const mediaTime = message.timestamp || Date.now();
-        const fileName = media_name_creation(client, mediaSize, mediaTime);
+        const media_size = Buffer.byteLength(media.data, 'base64');
+        const media_time = message.timestamp || Date.now();
+        const file_name = media_name_creation(client, media_size, media_time);
         const ext = media.mimetype ? `.${media.mimetype.split('/')[1]}` : '';
-        const fullFileName = `${fileName}${ext}`;
-        const filePath = path.join(__dirname, '../media', fullFileName);
-        fs.writeFileSync(filePath, Buffer.from(media.data, 'base64'));
-        log_action('MEDIA_DOWNLOAD_SUCCESS', `file: ${fullFileName}`);
-        return fullFileName;
+        const full_file_name = `${file_name}${ext}`;
+        const file_path = path.join(__dirname, '../media', full_file_name);
+        fs.writeFileSync(file_path, Buffer.from(media.data, 'base64'));
+        log_action('MEDIA_DOWNLOAD_SUCCESS', `file: ${full_file_name}`);
+        return full_file_name;
     } catch (err) {
         log_action('MEDIA_DOWNLOAD_ERROR', err.message);
         error_report(null, { error_message: err.message });

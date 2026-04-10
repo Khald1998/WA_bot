@@ -3,8 +3,8 @@
 
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-const dbPath = path.join(__dirname, '../../FPG.db');
-const db = new sqlite3.Database(dbPath);
+const db_path = path.join(__dirname, '../../FPG.db');
+const db = new sqlite3.Database(db_path);
 const FPG_logs = require('../schema/FPG_logs');
 
 // Ensure table exists

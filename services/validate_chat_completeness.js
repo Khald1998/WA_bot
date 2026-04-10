@@ -17,43 +17,43 @@ async function validate_chat_completeness(client) {
         
         // Step 1: Get all messages from WhatsApp group
         console.log('Fetching all group chat history...');
-        const whatsappMessages = await get_all_group_chat_history(GROUP_ID, client);
-        log_action('VALIDATE_CHAT_COMPLETENESS_FETCHED', `Total WhatsApp messages: ${whatsappMessages.length}`);
+        const whatsapp_messages = await get_all_group_chat_history(GROUP_ID, client);
+        log_action('VALIDATE_CHAT_COMPLETENESS_FETCHED', `Total WhatsApp messages: ${whatsapp_messages.length}`);
         
         // Step 2: Get all existing messages from database
         console.log('Fetching all database logs...');
-        const dbMessages = await new Promise((resolve, reject) => {
+        const db_messages = await new Promise((resolve, reject) => {
             get_all_FPG_logs((err, logs) => {
                 if (err) reject(err);
                 else resolve(logs);
             });
         });
-        log_action('VALIDATE_CHAT_COMPLETENESS_DB_LOGS', `Total DB messages: ${dbMessages.length}`);
+        log_action('VALIDATE_CHAT_COMPLETENESS_DB_LOGS', `Total DB messages: ${db_messages.length}`);
         
         // Step 3: Create a Set of existing _serialized IDs in the database
-        const existingSerializedIds = new Set(
-            dbMessages.map(msg => msg._serialized)
+        const existing_serialized_ids = new Set(
+            db_messages.map(msg => msg._serialized)
         );
         
         // Step 4: Filter messages that don't exist in the database
-        const missingMessages = whatsappMessages.filter(
-            msg => !existingSerializedIds.has(msg.id._serialized)
+        const missing_messages = whatsapp_messages.filter(
+            msg => !existing_serialized_ids.has(msg.id._serialized)
         );
         
-        console.log(`Found ${missingMessages.length} missing messages to insert`);
-        log_action('VALIDATE_CHAT_COMPLETENESS_MISSING', `Missing messages: ${missingMessages.length}`);
+        console.log(`Found ${missing_messages.length} missing messages to insert`);
+        log_action('VALIDATE_CHAT_COMPLETENESS_MISSING', `Missing messages: ${missing_messages.length}`);
         
         // Step 5: Insert missing messages
-        let insertedCount = 0;
-        let errorCount = 0;
+        let inserted_count = 0;
+        let error_count = 0;
         
-        for (const message of missingMessages) {
+        for (const message of missing_messages) {
             try {
                 // Get phone number for the message
-                const phoneNumber = await get_sender_phone_number(client, message);
+                const phone_number = await get_sender_phone_number(client, message);
                 
                 // Collect message data
-                const db_message = collect_db_message(message, phoneNumber);
+                const db_message = collect_db_message(message, phone_number);
                 
                 if (db_message) {
                     // Download media if present and set media_id
@@ -61,30 +61,30 @@ async function validate_chat_completeness(client) {
                     
                     // Insert message into database
                     insert_message(db_message);
-                    insertedCount++;
+                    inserted_count++;
                     
-                    if (insertedCount % 10 === 0) {
-                        console.log(`Inserted ${insertedCount}/${missingMessages.length} messages...`);
+                    if (inserted_count % 10 === 0) {
+                        console.log(`Inserted ${inserted_count}/${missing_messages.length} messages...`);
                     }
                 }
             } catch (error) {
-                errorCount++;
+                error_count++;
                 log_action('VALIDATE_CHAT_COMPLETENESS_INSERT_ERROR', 
                     `Error inserting message ${message.id._serialized}: ${error.message}`);
                 console.error(`Error inserting message ${message.id._serialized}:`, error.message);
             }
         }
         
-        console.log(`Validation complete! Inserted: ${insertedCount}, Errors: ${errorCount}`);
+        console.log(`Validation complete! Inserted: ${inserted_count}, Errors: ${error_count}`);
         log_action('VALIDATE_CHAT_COMPLETENESS_COMPLETE', 
-            `Inserted: ${insertedCount}, Errors: ${errorCount}`);
+            `Inserted: ${inserted_count}, Errors: ${error_count}`);
         
         return {
-            totalWhatsAppMessages: whatsappMessages.length,
-            totalDbMessages: dbMessages.length,
-            missingMessages: missingMessages.length,
-            insertedCount,
-            errorCount
+            total_whatsapp_messages: whatsapp_messages.length,
+            total_db_messages: db_messages.length,
+            missing_messages: missing_messages.length,
+            inserted_count,
+            error_count
         };
         
     } catch (error) {

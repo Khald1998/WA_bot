@@ -4,7 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./FPG.db');
 
-function addOrUpdateIBAN({ id, FPG_logs_id, iban_number, original_text, created_at, updated_at }) {
+function add_or_update_iban({ id, FPG_logs_id, iban_number, original_text, created_at, updated_at }) {
     const query = `
         INSERT INTO IBAN (id, FPG_logs_id, iban_number, original_text, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -24,4 +24,4 @@ function addOrUpdateIBAN({ id, FPG_logs_id, iban_number, original_text, created_
     });
 }
 
-module.exports = addOrUpdateIBAN;
+module.exports = add_or_update_iban;

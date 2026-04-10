@@ -416,38 +416,38 @@ function parser_sadad(text) {
 
 
     // 3. Extract all numbers from text (ignore numbers preceded by '@', e.g. @168779497636088)
-    const numberRegex = /(?<!@)\b\d+\b/g;
-    const allNumbers = text.match(numberRegex) || [];
+    const number_regex = /(?<!@)\b\d+\b/g;
+    const all_numbers = text.match(number_regex) || [];
 
     // 4. Check if at least one sadad_type exists in the extracted numbers
     //    Handles both exact match ("001") and without leading zeros ("1")
-    const stripLeadingZeros = num => String(parseInt(num, 10));
-    const normalizedSadadTypes = new Set(sadad_type.map(stripLeadingZeros));
+    const strip_leading_zeros = num => String(parseInt(num, 10));
+    const normalized_sadad_types = new Set(sadad_type.map(strip_leading_zeros));
 
     // Build a lookup: normalized value -> original padded string (e.g. "1" -> "001")
-    const normalizedToOriginal = {};
-    sadad_type.forEach(t => { normalizedToOriginal[stripLeadingZeros(t)] = t; });
+    const normalized_to_original = {};
+    sadad_type.forEach(t => { normalized_to_original[strip_leading_zeros(t)] = t; });
 
-    const matchedType = allNumbers.find(num =>
+    const matched_type = all_numbers.find(num =>
         sadad_type.includes(num) ||
-        normalizedSadadTypes.has(stripLeadingZeros(num))
+        normalized_sadad_types.has(strip_leading_zeros(num))
     );
 
-    if (!matchedType) {
+    if (!matched_type) {
         return [];
     }
 
     // Resolve matched type to its canonical padded form (e.g. "1" -> "001")
-    const resolvedType = sadad_type.includes(matchedType)
-        ? matchedType
-        : normalizedToOriginal[stripLeadingZeros(matchedType)];
+    const resolved_type = sadad_type.includes(matched_type)
+        ? matched_type
+        : normalized_to_original[strip_leading_zeros(matched_type)];
 
     // 5. Return only numbers with more than 7 digits, each paired with the matched sadad_type
-    const sadadNumbers = allNumbers
+    const sadad_numbers = all_numbers
         .filter(num => num.length > 7)
-        .map(num => ({ sadad_number: num, sadad_type: resolvedType }));
+        .map(num => ({ sadad_number: num, sadad_type: resolved_type }));
 
-    return sadadNumbers;
+    return sadad_numbers;
 }
 
 module.exports = parser_sadad;

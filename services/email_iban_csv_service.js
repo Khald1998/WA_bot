@@ -59,7 +59,7 @@ async function email_iban_csv_service(email_config, start_time, end_time, to, cc
   const db = open_database();
 
   try {
-    log_action('EMAIL_IBAN_CSV_QUERY_ATTEMPT', `startTime: ${start_time}, endTime: ${end_time}`);
+    log_action('EMAIL_IBAN_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
     const ibans = await query_ibans(db, start_time, end_time);
     log_action('EMAIL_IBAN_CSV_QUERY_SUCCESS', `Found ${ibans.length} IBANs`);
