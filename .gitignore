@@ -23,3 +23,9 @@ media/*
 # Log files
 *.log
 eng.traineddata
+
+# Environment variables (credentials)
+.env
+
+# HTTP request config (contains smtp settings)
+HTTP_request/email_config.js

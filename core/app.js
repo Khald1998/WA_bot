@@ -50,5 +50,5 @@ app.listen(port, () => {
   console.log('   → POST /message_count_in_group  { "group_id": "<group_id>" }');
   console.log('   → GET  /group-chat-history/:group_id');
   console.log('   → POST /validate-chat-completeness');
-  console.log('   → POST /email-iban-csv          { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
+  console.log('   → POST /email-csv               { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "type": "iban|phone|sadad|national_id" }');
 });

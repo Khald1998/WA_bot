@@ -1,14 +1,5 @@
 const axios = require('axios');
-
-const email_config = {
-  service: 'gmail',
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  user: 'alzahrani.khaled.98@gmail.com',
-  pass: 'dycs nwqs uyvm hkay',
-  from: 'alzahrani.khaled.98@gmail.com'
-};
+const email_config = require('./email_config');
 
 const data = {
   email_config,

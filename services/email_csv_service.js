@@ -29,7 +29,7 @@ async function email_csv_service(email_config, start_time, end_time, to, cc, lab
 
     const results = await send_to_all_recipients(
       transporter, email_config, to, file_name, csv_content,
-      records.length, start_time, end_time, subject, text_body, html_body, cc
+      subject, text_body, html_body, cc
     );
 
     return { success: true, file_name, record_count: records.length, sent_to: results };

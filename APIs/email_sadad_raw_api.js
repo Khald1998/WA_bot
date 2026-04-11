@@ -19,10 +19,12 @@ module.exports = () => {
     }
 
     // Validate email_config structure
-    if (!email_config.host || !email_config.port || !email_config.user || !email_config.pass || !email_config.from) {
+    const has_service = !!email_config.service;
+    const has_host_config = email_config.host && email_config.port && email_config.secure !== undefined;
+    if ((!has_service && !has_host_config) || !email_config.user || !email_config.pass || !email_config.from) {
       log_action('API_EMAIL_SADAD_RAW_ATTEMPT', 'Invalid email_config');
       return res.status(400).json({
-        error: 'email_config must contain "host", "port", "secure", "user", "pass", and "from" fields.'
+        error: 'email_config must contain "user", "pass", "from", and either "service" or ("host", "port", "secure") fields.'
       });
     }
 

@@ -1,17 +1,8 @@
 const axios = require('axios');
+const email_config = require('./email_config');
 
 const start_time = '1970-01-01T00:00:00.000Z';
 const end_time = '9999-12-31T23:59:59.999Z';
-
-const email_config = {
-  service: 'gmail',
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  user: 'alzahrani.khaled.98@gmail.com',
-  pass: 'dycs nwqs uyvm hkay',
-  from: 'alzahrani.khaled.98@gmail.com'
-};
 
 const data = {
   type: 'national_id',

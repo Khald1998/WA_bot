@@ -1,6 +1,6 @@
 const build_attachment = require('./email_build_attachment');
 
-function build_mail_options(config, email, file_name, csv_content, count, start_time, end_time, subject, text_body, html_body, cc) {
+function build_mail_options(config, email, file_name, csv_content, subject, text_body, html_body, cc) {
   const mail_options = {
     from: config.from,
     to: email,

@@ -111,18 +111,21 @@ async function email_iban_raw_service(email_config, to, cc) {
       cc
     );
 
+    if (!results.success) {
+      return { success: false, error: results.error };
+    }
+
     // Mark IBANs as reported after successful email sending
     const iban_ids = ibans.map(iban => iban.id);
     const mark_result = await mark_ibans_as_reported(iban_ids);
     log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBANs as reported`);
 
     return {
-      success: results.success,
+      success: true,
       record_count: ibans.length,
       marked_as_reported: mark_result.changes,
-      sent_to: results.sent_to,
-      cc: cc,
-      error: results.error
+      sent_to: to,
+      cc: cc || []
     };
 
   } catch (err) {
