@@ -4,7 +4,7 @@ const FUNCTION_NAME = 'email_iban_raw_service';
 const { log_action } = require('../debug/logger');
 const get_unreported_ibans = require('../getters/get_unreported_IBANs');
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
-const create_transporter = require('./helper/email_create_transporter');
+const create_transporter = require('../email_helper/email_create_transporter');
 
 function build_subject(count) {
   return `Unreported IBANs - ${count} records`;

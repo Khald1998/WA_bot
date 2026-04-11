@@ -2,10 +2,10 @@ const SERVICE_FILE_NAME = 'services/email_sadad_csv_service.js';
 const FUNCTION_NAME = 'email_sadad_csv_service';
 
 const { log_action } = require('../debug/logger');
-const generate_filename = require('./helper/email_generate_filename');
+const generate_filename = require('../email_helper/email_generate_filename');
 const generate_sadad_csv = require('../generate_report/generate_sadad_csv');
-const create_transporter = require('./helper/email_create_transporter');
-const send_to_all_recipients = require('./helper/email_send_to_all_recipients');
+const create_transporter = require('../email_helper/email_create_transporter');
+const send_to_all_recipients = require('../email_helper/email_send_to_all_recipients');
 const get_sadads_by_time = require('../getters/get_sadads_by_time');
 
 
