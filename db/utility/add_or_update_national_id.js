@@ -15,12 +15,15 @@ function add_or_update_national_id({ id, FPG_logs_id, national_id_number, origin
             updated_at = excluded.updated_at;
     `;
 
-    db.run(query, [id, FPG_logs_id, national_id_number, original_text, created_at, updated_at], function (err) {
-        if (err) {
-            console.error('Error adding/updating National ID:', err.message);
-        } else {
+    return new Promise((resolve, reject) => {
+        db.run(query, [id, FPG_logs_id, national_id_number, original_text, created_at, updated_at], function (err) {
+            if (err) {
+                console.error('Error adding/updating National ID:', err.message);
+                return reject(err);
+            }
             console.log('National ID record added/updated successfully');
-        }
+            resolve();
+        });
     });
 }
 

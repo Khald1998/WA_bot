@@ -16,12 +16,15 @@ function add_or_update_sadad({ id, FPG_logs_id, sadad_number, sadad_type, origin
             updated_at = excluded.updated_at;
     `;
 
-    db.run(query, [id, FPG_logs_id, sadad_number, sadad_type, original_text, created_at, updated_at], function (err) {
-        if (err) {
-            console.error('Error adding/updating SADAD:', err.message);
-        } else {
+    return new Promise((resolve, reject) => {
+        db.run(query, [id, FPG_logs_id, sadad_number, sadad_type, original_text, created_at, updated_at], function (err) {
+            if (err) {
+                console.error('Error adding/updating SADAD:', err.message);
+                return reject(err);
+            }
             console.log('SADAD record added/updated successfully');
-        }
+            resolve();
+        });
     });
 }
 

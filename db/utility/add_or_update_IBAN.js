@@ -15,12 +15,15 @@ function add_or_update_iban({ id, FPG_logs_id, iban_number, original_text, creat
             updated_at = excluded.updated_at;
     `;
 
-    db.run(query, [id, FPG_logs_id, iban_number, original_text, created_at, updated_at], function (err) {
-        if (err) {
-            console.error('Error adding/updating IBAN:', err.message);
-        } else {
+    return new Promise((resolve, reject) => {
+        db.run(query, [id, FPG_logs_id, iban_number, original_text, created_at, updated_at], function (err) {
+            if (err) {
+                console.error('Error adding/updating IBAN:', err.message);
+                return reject(err);
+            }
             console.log('IBAN record added/updated successfully');
-        }
+            resolve();
+        });
     });
 }
 

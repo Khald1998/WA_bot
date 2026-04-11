@@ -15,12 +15,15 @@ function add_or_update_phone({ id, FPG_logs_id, phone_number, original_text, cre
             updated_at = excluded.updated_at;
     `;
 
-    db.run(query, [id, FPG_logs_id, phone_number, original_text, created_at, updated_at], function (err) {
-        if (err) {
-            console.error('Error adding/updating phone:', err.message);
-        } else {
+    return new Promise((resolve, reject) => {
+        db.run(query, [id, FPG_logs_id, phone_number, original_text, created_at, updated_at], function (err) {
+            if (err) {
+                console.error('Error adding/updating phone:', err.message);
+                return reject(err);
+            }
             console.log('Phone record added/updated successfully');
-        }
+            resolve();
+        });
     });
 }
 
