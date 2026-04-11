@@ -1,4 +1,4 @@
-const { error_report } = require('../debugg/error_report_service');
+const { error_report } = require('../../debug/error_report_service');
 const SERVICE_FILE_NAME = 'services/helper/collect_db_message.js';
 const FUNCTION_NAME = 'collect_db_message';
 // services/helper/collect_db_message.js

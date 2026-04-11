@@ -1,7 +1,7 @@
-const { error_report } = require('./debugg/error_report_service');
+const { error_report } = require('../debug/error_report_service');
 const SERVICE_FILE_NAME = 'services/PFG_bussiness_logic.js';
 const FUNCTION_NAME = 'handle_group_message';
-const { get_sender_phone_number } = require('./getters/get_sender_number');
+const { get_sender_phone_number } = require('../getters/get_sender_number');
 const insert_message = require('../db/utility/insert_message');
 const collect_db_message = require('./helper/collect_db_message');
 const { download_media } = require('../wa_client_services/download_media_service');

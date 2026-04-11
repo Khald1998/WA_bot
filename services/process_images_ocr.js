@@ -4,7 +4,7 @@
 const path = require('path');
 const fs = require('fs');
 const Tesseract = require('tesseract.js');
-const get_all_image_media_ids = require('./getters/get_all_image_media_ids');
+const get_all_image_media_ids = require('../getters/get_all_image_media_ids');
 const insert_ocr_content = require('../db/utility/insert_ocr_content');
 
 function fetch_image_ids() {

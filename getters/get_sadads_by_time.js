@@ -1,0 +1,20 @@
+const sqlite3 = require('sqlite3').verbose();
+
+function get_sadads_by_time(start_time, end_time) {
+  const db = new sqlite3.Database('./FPG.db');
+  const query = `
+    SELECT id, FPG_logs_id, sadad_number, sadad_type, original_text, created_at, updated_at
+    FROM sadad
+    WHERE created_at >= ? AND created_at <= ?
+    ORDER BY created_at ASC
+  `;
+
+  return new Promise((resolve, reject) => {
+    db.all(query, [start_time, end_time], (err, rows) => {
+      db.close();
+      err ? reject(err) : resolve(rows);
+    });
+  });
+}
+
+module.exports = get_sadads_by_time;

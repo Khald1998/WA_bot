@@ -1,5 +1,5 @@
-const get_all_FPG_logs = require('./getters/get_all_FPG_logs');
-const get_all_IBAN_log_ids = require('./getters/get_all_IBAN_log_ids');
+const get_all_FPG_logs = require('../getters/get_all_FPG_logs');
+const get_all_IBAN_log_ids = require('../getters/get_all_IBAN_log_ids');
 const update_fpg_log = require('../db/utility/update_FPG_log');
 const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');

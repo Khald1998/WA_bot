@@ -5,7 +5,7 @@
 
 const SERVICE_FILE_NAME = 'services/error_report_service.js';
 const FUNCTION_NAME = 'error_report';
-const { send_message_service } = require('../send_message_service');
+const { send_message_service } = require('../services/send_message_service');
 
 async function error_report(client, { service_file_name, function_name, error_message }) {
     const project_name = 'WhatsappBot';

@@ -2,7 +2,7 @@ const SERVICE_FILE_NAME = 'services/email_sadad_raw_service.js';
 const FUNCTION_NAME = 'email_sadad_raw_service';
 
 const { log_action } = require('../debug/logger');
-const get_unreported_sadads = require('./getters/get_unreported_sadads');
+const get_unreported_sadads = require('../getters/get_unreported_sadads');
 const mark_sadads_as_reported = require('../db/utility/mark_sadads_as_reported');
 const create_transporter = require('./helper/email_create_transporter');
 
