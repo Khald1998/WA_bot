@@ -14,6 +14,7 @@ const email_config = {
 };
 
 const data = {
+  type: 'sadad',
   email_config,
   start_time,
   end_time,
@@ -37,7 +38,7 @@ const data = {
   ]
 };
 
-axios.post('http://localhost:3000/email-sadad-csv', data)
+axios.post('http://localhost:3000/email-csv', data)
   .then(res => {
     console.log('Email SADAD CSV sent:', res.data);
   })

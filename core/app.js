@@ -10,12 +10,9 @@ const get_individual_chats_api = require('../APIs/get_individual_chats_api');
 const get_group_chat_history_api = require('../APIs/get_group_chat_history_api');
 const validate_chat_completeness_api = require('../APIs/validate_chat_completeness_api');
 const collect_evidence_api = require('../APIs/collect_evidence_api');
-const email_iban_csv_api = require('../APIs/email_iban_csv_api');
+const email_csv_api = require('../APIs/email_csv_api');
 const email_iban_raw_api = require('../APIs/email_iban_raw_api');
-const email_phone_csv_api = require('../APIs/email_phone_csv_api');
-const email_national_id_csv_api = require('../APIs/email_national_id_csv_api');
 const email_national_id_raw_api = require('../APIs/email_national_id_raw_api');
-const email_sadad_csv_api = require('../APIs/email_sadad_csv_api');
 const email_sadad_raw_api = require('../APIs/email_sadad_raw_api');
 
 const app = express();
@@ -38,12 +35,9 @@ app.use(get_individual_chats_api(client, get_client_ready));
 app.use(get_group_chat_history_api(client, get_client_ready));
 app.use(validate_chat_completeness_api(client, get_client_ready));
 app.use(collect_evidence_api);
-app.use(email_iban_csv_api());
+app.use(email_csv_api());
 app.use(email_iban_raw_api());
-app.use(email_phone_csv_api());
-app.use(email_national_id_csv_api());
 app.use(email_national_id_raw_api());
-app.use(email_sadad_csv_api());
 app.use(email_sadad_raw_api());
 
 const port = process.env.PORT || 3000;
@@ -57,6 +51,4 @@ app.listen(port, () => {
   console.log('   → GET  /group-chat-history/:group_id');
   console.log('   → POST /validate-chat-completeness');
   console.log('   → POST /email-iban-csv          { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
-  console.log('   → POST /email-phone-csv         { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
-  console.log('   → POST /email-national-id-csv   { "email_config": {...}, "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "emails": ["<email>", ...] }');
 });

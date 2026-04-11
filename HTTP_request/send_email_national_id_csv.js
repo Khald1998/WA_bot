@@ -14,6 +14,7 @@ const email_config = {
 };
 
 const data = {
+  type: 'national_id',
   email_config,
   start_time,
   end_time,
@@ -37,7 +38,7 @@ const data = {
   ]
 };
 
-axios.post('http://localhost:3000/email-national-id-csv', data)
+axios.post('http://localhost:3000/email-csv', data)
   .then(res => {
     console.log('Email National ID CSV sent:', res.data);
   })
