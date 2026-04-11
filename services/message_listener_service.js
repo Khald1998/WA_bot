@@ -1,4 +1,4 @@
-const { error_report } = require('./error_report_service');
+const { error_report } = require('./debugg/error_report_service');
 const SERVICE_FILE_NAME = 'services/message_listener_service.js';
 const FUNCTION_NAME = 'attach_message_listener';
 // services/message_listener_service.js

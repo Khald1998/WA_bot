@@ -12,7 +12,7 @@ db.run(FPG_logs);
 
 function insert_message(message_obj) {
     const { log_action } = require('../../debug/logger');
-    try {
+    return new Promise((resolve, reject) => {
         log_action('DB_INSERT_ATTEMPT', `mid: ${message_obj.mid}`);
         const stmt = db.prepare(`
             INSERT OR REPLACE INTO FPG_logs (
@@ -59,12 +59,16 @@ function insert_message(message_obj) {
             message_obj.phone_number,
             message_obj.is_processed,
             message_obj.media_id
-        ]);
-        stmt.finalize();
-        log_action('DB_INSERT_SUCCESS', `mid: ${message_obj.mid}`);
-    } catch (error) {
-        log_action('DB_INSERT_ERROR', error.message);
-    }
+        ], function(err) {
+            stmt.finalize();
+            if (err) {
+                log_action('DB_INSERT_ERROR', err.message);
+                return reject(err);
+            }
+            log_action('DB_INSERT_SUCCESS', `mid: ${message_obj.mid}`);
+            resolve();
+        });
+    });
 }
 
 module.exports = insert_message;

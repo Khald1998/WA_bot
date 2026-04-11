@@ -5,7 +5,7 @@
 
 const express = require('express');
 const { log_action } = require('../debug/logger');
-const { get_all_group_chat_history } = require('../services/get_group_chat_history_service');
+    const { get_all_group_chat_history } = require('../getters/get_group_chat_history_service');
 
 module.exports = (client, get_client_ready) => {
     const router = express.Router();

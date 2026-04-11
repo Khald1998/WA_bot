@@ -2,7 +2,7 @@
 // API for getting all individual (non-group) chats
 
 const express = require('express');
-const { get_individual_chats } = require('../services/get_individual_chats_service');
+const { get_individual_chats } = require('../getters/get_individual_chats_service');
 const { log_action } = require('../debug/logger');
 
 module.exports = (client, get_client_ready) => {

@@ -1,7 +1,6 @@
-const { error_report } = require('./error_report_service');
-const SERVICE_FILE_NAME = 'services/get_group_names_service.js';
+const { error_report } = require('../debug/error_report_service');
+const SERVICE_FILE_NAME = 'getters/get_group_names_service.js';
 const FUNCTION_NAME = 'get_group_names';
-// services/group_service.js
 const { log_action } = require('../debug/logger');
 
 async function get_group_names(client) {

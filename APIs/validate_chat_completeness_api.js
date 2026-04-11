@@ -3,7 +3,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { validate_chat_completeness } = require('../services/validate_chat_completeness');
+const { validate_chat_completeness } = require('../wa_client_services/validate_chat_completeness');
 const { log_action } = require('../debug/logger');
 
 module.exports = (client, is_client_ready) => {

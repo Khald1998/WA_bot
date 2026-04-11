@@ -2,7 +2,7 @@ const SERVICE_FILE_NAME = 'services/email_national_id_raw_service.js';
 const FUNCTION_NAME = 'email_national_id_raw_service';
 
 const { log_action } = require('../debug/logger');
-const get_unreported_national_ids = require('../db/utility/get_unreported_national_ids');
+const get_unreported_national_ids = require('./getters/get_unreported_national_ids');
 const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');
 const create_transporter = require('./helper/email_create_transporter');
 

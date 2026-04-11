@@ -4,7 +4,6 @@ require('../db/database');
 const express = require('express');
 const { create_whatsapp_client } = require('../services/whatsapp_client_service');
 const send_message_api = require('../APIs/send_message_api');
-const test_api = require('../APIs/test_api');
 const get_group_names_api = require('../APIs/get_group_names_api');
 const { log_action } = require('../debug/logger');
 const attach_message_listener = require('../services/message_listener_service');
@@ -20,7 +19,6 @@ const email_iban_raw_api = require('../APIs/email_iban_raw_api');
 const email_phone_csv_api = require('../APIs/email_phone_csv_api');
 const email_national_id_csv_api = require('../APIs/email_national_id_csv_api');
 const email_national_id_raw_api = require('../APIs/email_national_id_raw_api');
-const collect_evidence_sadad_api = require('../APIs/collect_evidence_sadad_api');
 const email_sadad_csv_api = require('../APIs/email_sadad_csv_api');
 const email_sadad_raw_api = require('../APIs/email_sadad_raw_api');
 
@@ -40,7 +38,6 @@ attach_message_listener(client);
 // Mount the API router (paths are defined inside the API module)
 log_action('SERVER_START', 'Mounting API router');
 app.use(send_message_api(client, get_client_ready));
-app.use(test_api);
 app.use(get_group_names_api(client, get_client_ready));
 app.use(get_individual_chats_api(client, get_client_ready));
 app.use(get_group_chat_history_api(client, get_client_ready));
@@ -54,7 +51,6 @@ app.use(email_iban_raw_api());
 app.use(email_phone_csv_api());
 app.use(email_national_id_csv_api());
 app.use(email_national_id_raw_api());
-app.use(collect_evidence_sadad_api);
 app.use(email_sadad_csv_api());
 app.use(email_sadad_raw_api());
 
@@ -63,7 +59,6 @@ app.listen(port, () => {
   log_action('SERVER_LISTEN', `HTTP API listening on http://localhost:${port}`);
   console.log(`🚀 HTTP API listening on http://localhost:${port}`);
   console.log('   → POST /send                 { "number": "<recipient>", "message": "<text>" }');
-  console.log('   → GET  /test');
   console.log('   → GET  /groups');
   console.log('   → POST /archive_chat          { "group_id": "<group_id>" }');
   console.log('   → POST /last_message_in_group   { "group_id": "<group_id>" }');

@@ -1,5 +1,5 @@
 const express = require('express');
-const group_service = require('../services/get_group_names_service');
+const group_service = require('../getters/get_group_names_service');
 const { log_action } = require('../debug/logger');
 
 module.exports = (client, get_client_ready) => {

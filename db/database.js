@@ -8,6 +8,7 @@ const IBAN = require('./schema/IBAN');
 const national_id = require('./schema/national_id');
 const phone = require('./schema/phone');
 const sadad = require('./schema/sadad');
+const OCR_content = require('./schema/OCR_content');
 
 const db_path = path.join(__dirname, '../FPG.db');
 const db = new sqlite3.Database(db_path);
@@ -33,6 +34,9 @@ db.serialize(() => {
     });
     db.run(sadad, (err) => {
         if (err) console.error('Error creating sadad table:', err.message);
+    });
+    db.run(OCR_content, (err) => {
+        if (err) console.error('Error creating OCR_content table:', err.message);
     });
 });
 
