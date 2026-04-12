@@ -1,26 +1,23 @@
 const nodemailer = require('nodemailer');
 
-function create_transporter(config) {
-  // Accepts both service-based and host/port-based configs
-  if (config.service) {
-    return nodemailer.createTransport({
-      service: config.service,
-      auth: {
-        user: config.user,
-        pass: config.pass
-      }
-    });
-  } else {
-    return nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      auth: {
-        user: config.user,
-        pass: config.pass
-      }
-    });
-  }
+const email_config = {
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  user: process.env.EMAIL_USER,
+  pass: process.env.EMAIL_PASS,
+  from: process.env.EMAIL_FROM,
+};
+
+function create_transporter() {
+  return nodemailer.createTransport({
+    service: email_config.service,
+    auth: {
+      user: email_config.user,
+      pass: email_config.pass,
+    },
+  });
 }
 
-module.exports = create_transporter;
+module.exports = { create_transporter, email_config };

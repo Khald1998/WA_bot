@@ -3,7 +3,7 @@
 
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const db_path = path.join(__dirname, '../../FPG.db');
+const db_path = path.join(__dirname, '../FPG.db');
 
 function get_all_FPG_logs(callback) {
     const db = new sqlite3.Database(db_path, sqlite3.OPEN_READONLY, (err) => {

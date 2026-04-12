@@ -22,21 +22,12 @@ const TYPE_MAP = {
 
 module.exports = () => {
   router.post('/email-csv', async (req, res) => {
-    const { email_config, start_time, end_time, to, cc, type } = req.body;
+    const { start_time, end_time, to, cc, type, text_body, html_body } = req.body;
 
-    if (!email_config || !start_time || !end_time || !to || !Array.isArray(to) || to.length === 0 || !type) {
+    if (!start_time || !end_time || !to || !Array.isArray(to) || to.length === 0 || !type) {
       log_action('API_EMAIL_CSV_ATTEMPT', 'Missing required fields');
       return res.status(400).json({
-        error: 'Request body must contain "email_config", "start_time", "end_time", "to" (array), and "type" fields.'
-      });
-    }
-
-    const has_service = !!email_config.service;
-    const has_host_config = email_config.host && email_config.port && email_config.secure !== undefined;
-    if ((!has_service && !has_host_config) || !email_config.user || !email_config.pass || !email_config.from) {
-      log_action('API_EMAIL_CSV_ATTEMPT', 'Invalid email_config');
-      return res.status(400).json({
-        error: 'email_config must contain "user", "pass", "from", and either "service" or ("host", "port", "secure") fields.'
+        error: 'Request body must contain "start_time", "end_time", "to" (array), and "type" fields.'
       });
     }
 
@@ -50,8 +41,9 @@ module.exports = () => {
 
     try {
       const result = await email_csv_service(
-        email_config, start_time, end_time, to, cc,
-        config.label, config.get_data, config.generate_csv
+        start_time, end_time, to, cc,
+        config.label, config.get_data, config.generate_csv,
+        text_body, html_body
       );
       return res.json(result);
     } catch (err) {

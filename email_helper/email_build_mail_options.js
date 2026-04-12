@@ -1,19 +1,23 @@
-const build_attachment = require('./email_build_attachment');
+const { email_config } = require('./email_create_transporter');
 
-function build_mail_options(config, email, file_name, csv_content, subject, text_body, html_body, cc) {
+function build_mail_options({ to, subject, text, html, attachments, cc } = {}) {
   const mail_options = {
-    from: config.from,
-    to: email,
-    subject,
-    text: text_body,
-    html: html_body,
-    attachments: [build_attachment(file_name, csv_content)]
+    from: email_config.from,
+    to: Array.isArray(to) ? to.join(', ') : (to || ''),
+    subject: subject || '',
   };
-  
-  if (cc && Array.isArray(cc) && cc.length > 0) {
-    mail_options.cc = cc.join(', ');
+
+  if (text) mail_options.text = text;
+  if (html) mail_options.html = html;
+
+  if (cc) {
+    mail_options.cc = Array.isArray(cc) ? cc.join(', ') : cc;
   }
-  
+
+  if (attachments) {
+    mail_options.attachments = Array.isArray(attachments) ? attachments : [attachments];
+  }
+
   return mail_options;
 }
 

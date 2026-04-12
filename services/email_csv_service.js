@@ -1,12 +1,9 @@
 const { log_action } = require('../debug/logger');
-const generate_filename = require('../email_helper/email_generate_filename');
-const create_transporter = require('../email_helper/email_create_transporter');
-const send_to_all_recipients = require('../email_helper/email_send_to_all_recipients');
-const email_build_subject = require('../email_helper/email_build_subject');
-const email_build_text_body = require('../email_helper/email_build_text_body');
-const email_build_html_body = require('../email_helper/email_build_html_body');
+const { create_transporter } = require('../email_helper/email_create_transporter');
+const send_email = require('../email_helper/email_send_to_recipient');
+const build_attachment = require('../email_helper/email_build_attachment');
 
-async function email_csv_service(email_config, start_time, end_time, to, cc, label, get_data, generate_csv) {
+async function email_csv_service(start_time, end_time, to, cc, label, get_data, generate_csv, text_body, html_body) {
   try {
     log_action('EMAIL_CSV_QUERY_ATTEMPT', `start_time: ${start_time}, end_time: ${end_time}`);
 
@@ -21,18 +18,22 @@ async function email_csv_service(email_config, start_time, end_time, to, cc, lab
     const csv_content = generate_csv(records);
     log_action('EMAIL_CSV_GENERATED', `CSV size: ${csv_content.length} bytes`);
 
-    const file_name = generate_filename(label, start_time, end_time);
-    const transporter = create_transporter(email_config);
-    const subject = email_build_subject(label, start_time, end_time);
-    const text_body = email_build_text_body(label, start_time, end_time, records.length);
-    const html_body = email_build_html_body(label, start_time, end_time, records.length);
+    const file_name = `${label}_${start_time.replace(/:/g, '-')}_to_${end_time.replace(/:/g, '-')}.csv`;
+    const transporter = create_transporter();
 
-    const results = await send_to_all_recipients(
-      transporter, email_config, to, file_name, csv_content,
-      subject, text_body, html_body, cc
-    );
+    const final_subject = `${label} Export - ${start_time} to ${end_time}`;
+    const final_text = text_body || `${label} Export\nPeriod: ${start_time} to ${end_time}\nTotal records: ${records.length}`;
+    const final_html = html_body || `<h3>${label} Export</h3><p><strong>Period:</strong> ${start_time} to ${end_time}</p><p><strong>Total records:</strong> ${records.length}</p>`;
 
-    return { success: true, file_name, record_count: records.length, sent_to: results };
+    await send_email(transporter, {
+      to, cc,
+      subject: final_subject,
+      text: final_text,
+      html: final_html,
+      attachments: build_attachment(file_name, csv_content),
+    });
+
+    return { success: true, file_name, record_count: records.length };
   } catch (err) {
     log_action('EMAIL_CSV_ERROR', `error: ${err.message}`);
     throw err;
