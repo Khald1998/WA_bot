@@ -3,7 +3,7 @@
 
 LOG=/root/whatsapp-bot/cron.log
 
-curl -sS -X POST http://localhost:3000/validate-chat-completeness >> "$LOG" 2>&1
+#curl -sS -X POST http://localhost:3000/validate-chat-completeness >> "$LOG" 2>&1
 curl -sS -X POST http://localhost:3000/collect-evidence >> "$LOG" 2>&1
 curl -sS -X POST http://localhost:3000/email-csv \
   -H "Content-Type: application/json" \
