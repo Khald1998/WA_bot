@@ -58,10 +58,10 @@ app.listen(port, () => {
   console.log('   → POST /message_count_in_group  { "group_id": "<group_id>" }');
   console.log('   → GET  /group-chat-history/:group_id');
   console.log('   → POST /validate-chat-completeness');
-  console.log('   → POST /email-csv-iban          { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "subject": "<subject>" }');
-  console.log('   → POST /email-csv-phone         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "subject": "<subject>" }');
-  console.log('   → POST /email-csv-sadad         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "subject": "<subject>" }');
-  console.log('   → POST /email-csv-national-id   { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "subject": "<subject>" }');
+  console.log('   → POST /email-csv-iban          { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
+  console.log('   → POST /email-csv-phone         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
+  console.log('   → POST /email-csv-sadad         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
+  console.log('   → POST /email-csv-national-id   { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
   console.log('   → POST /email-raw-iban          { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
   console.log('   → POST /email-raw-national-id   { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
   console.log('   → POST /email-raw-sadad         { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');

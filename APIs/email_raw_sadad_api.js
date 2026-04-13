@@ -30,20 +30,17 @@ module.exports = () => {
         return res.json({ success: false, message: 'No unreported SADAD found' });
       }
 
-      const sent = await email_service(to, cc, subject, text_body, html_body);
+      await email_service(to, cc, subject, text_body, html_body);
 
-      if (sent) {
-        const mark_result = await mark_sadads_as_reported(records.map(r => r.id));
-        log_action('EMAIL_SADAD_RAW_MARK_REPORTED', `Marked ${mark_result.changes} SADAD as reported`);
-        return res.json({
-          success: true,
-          record_count: records.length,
-          marked_as_reported: mark_result.changes,
-          sent_to: to,
-          cc: cc || []
-        });
-      }
-
+      const mark_result = await mark_sadads_as_reported(records.map(r => r.id));
+      log_action('EMAIL_SADAD_RAW_MARK_REPORTED', `Marked ${mark_result.changes} SADAD as reported`);
+      return res.json({
+        success: true,
+        record_count: records.length,
+        marked_as_reported: mark_result.changes,
+        sent_to: to,
+        cc
+      });
     } catch (err) {
       log_action('API_EMAIL_RAW_SADAD_ERROR', err.message);
       return res.status(500).json({
