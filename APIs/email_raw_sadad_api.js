@@ -6,18 +6,49 @@ const { log_action } = require('../debug/logger');
 const get_unreported_sadads = require('../getters/get_unreported_sadads');
 const mark_sadads_as_reported = require('../db/utility/mark_sadads_as_reported');
 
+const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function build_body(records) {
+  const total = records.length;
+
+  const text_lines = ['Unreported SADAD Records', `Total: ${total}`, ''];
+  records.forEach((r, i) => {
+    text_lines.push(
+      `Record ${i + 1}`,
+      `sadad_number: ${r.sadad_number ?? ''}`,
+      `sadad_type: ${r.sadad_type ?? ''}`,
+      `original_text: ${r.original_text ?? ''}`,
+      `created_at: ${r.created_at ?? ''}`,
+      ''
+    );
+  });
+
+  const html_records = records.map((r, i) => `
+    <div style="border:1px solid #ddd;padding:12px;margin:8px 0;border-radius:6px;">
+      <strong>Record ${i + 1}</strong><br>
+      <strong>sadad_number:</strong> ${escape_html(r.sadad_number)}<br>
+      <strong>sadad_type:</strong> ${escape_html(r.sadad_type)}<br>
+      <strong>original_text:</strong> ${escape_html(r.original_text)}<br>
+      <strong>created_at:</strong> ${escape_html(r.created_at)}
+    </div>`).join('');
+
+  const html = `<h2>Unreported SADAD Records</h2><p><strong>Total:</strong> ${total}</p><hr>${html_records}`;
+
+  return { text: text_lines.join('\n'), html };
+}
+
 module.exports = () => {
   router.post('/email-raw-sadad', async (req, res) => {
-    const { to, cc, subject, text_body, html_body } = req.body;
+    const { to, cc, subject } = req.body;
 
     if (
       !to || !Array.isArray(to) || to.length === 0 ||
       !cc || !Array.isArray(cc) || cc.length === 0 ||
-      !subject || !text_body || !html_body
+      !subject
     ) {
       log_action('API_EMAIL_RAW_SADAD_ATTEMPT', 'Missing required fields');
       return res.status(400).json({
-        error: 'Request body must contain "to" (array), "cc" (array), "subject", "text_body", and "html_body" fields.'
+        error: 'Request body must contain "to" (array), "cc" (array), and "subject" fields.'
       });
     }
 
@@ -30,7 +61,8 @@ module.exports = () => {
         return res.json({ success: false, message: 'No unreported SADAD found' });
       }
 
-      await email_service(to, cc, subject, text_body, html_body);
+      const { text, html } = build_body(records);
+      await email_service(to, cc, subject, text, html);
 
       const mark_result = await mark_sadads_as_reported(records.map(r => r.id));
       log_action('EMAIL_SADAD_RAW_MARK_REPORTED', `Marked ${mark_result.changes} SADAD as reported`);

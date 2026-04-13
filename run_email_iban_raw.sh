@@ -5,8 +5,6 @@ LOG=/root/whatsapp-bot/cron.log
 
 LABEL="IBAN"
 SUBJECT="Unreported ${LABEL}"
-TEXT_BODY="Unreported ${LABEL} report"
-HTML_BODY="<h3>Unreported ${LABEL}</h3>"
 
 #curl -sS -X POST http://localhost:3000/validate-chat-completeness >> "$LOG" 2>&1
 curl -sS -X POST http://localhost:3000/collect-evidence >> "$LOG" 2>&1
@@ -31,7 +29,5 @@ curl -sS -X POST http://localhost:3000/email-raw-iban \
       \"aalasmari@saib.com.sa\",
       \"Analshammari@saib.com.sa\",
       \"Alharbif@saib.com.sa\"
-    ],
-    \"text_body\": \"${TEXT_BODY}\",
-    \"html_body\": \"${HTML_BODY}\"
+    ]
   }" >> "$LOG" 2>&1
