@@ -14,7 +14,7 @@ function mark_ibans_as_reported(iban_ids) {
         const placeholders = iban_ids.map(() => '?').join(',');
         const query = `
             UPDATE IBAN
-            SET is_reported = 1, updated_at = datetime('now')
+            SET is_reported = 1, updated_at = datetime('now', '+3 hours')
             WHERE id IN (${placeholders})
         `;
         

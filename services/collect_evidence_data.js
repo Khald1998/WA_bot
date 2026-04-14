@@ -59,7 +59,7 @@ function mark_as_processed(db, serialized_id, is_valid_evidence = false) {
 
 
 async function store_sadad(mid, sadads, log_body) {
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString();
     await Promise.all(sadads.map(({ sadad_number, sadad_type }) => {
         const id = crypto.createHash('sha256').update(mid + ':' + sadad_number).digest('hex');
         return add_or_update_sadad({
@@ -76,7 +76,7 @@ async function store_sadad(mid, sadads, log_body) {
 
 
 async function store_evidence(result) {
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString();
     const writes = [];
 
     // Store IBANs

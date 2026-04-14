@@ -14,7 +14,7 @@ function mark_sadads_as_reported(sadad_ids) {
         const placeholders = sadad_ids.map(() => '?').join(',');
         const query = `
             UPDATE sadad
-            SET is_reported = 1, updated_at = datetime('now')
+            SET is_reported = 1, updated_at = datetime('now', '+3 hours')
             WHERE id IN (${placeholders})
         `;
         

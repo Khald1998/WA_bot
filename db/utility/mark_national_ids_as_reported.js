@@ -14,7 +14,7 @@ function mark_national_ids_as_reported(national_id_ids) {
         const placeholders = national_id_ids.map(() => '?').join(',');
         const query = `
             UPDATE national_id
-            SET is_reported = 1, updated_at = datetime('now')
+            SET is_reported = 1, updated_at = datetime('now', '+3 hours')
             WHERE id IN (${placeholders})
         `;
         

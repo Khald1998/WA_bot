@@ -4,6 +4,8 @@ const email_service = require('../services/email_service');
 const { log_action } = require('../debug/logger');
 
 const get_unreported_ibans = require('../getters/get_unreported_IBANs');
+const get_ibans_by_time = require('../getters/get_ibans_by_time');
+const generate_iban_txt = require('../generate_report/generate_iban_txt');
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
 
 const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -60,7 +62,21 @@ module.exports = () => {
       }
 
       const { text, html } = build_body(records);
-      await email_service(to, cc, subject, text, html);
+
+      const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);
+      const y = ksa_now.getUTCFullYear();
+      const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(ksa_now.getUTCDate()).padStart(2, '0');
+      const start_of_day = `${y}-${m}-${d}T00:00:00.000Z`;
+      const end_of_day = `${y}-${m}-${d}T23:59:59.999Z`;
+      const today_records = await get_ibans_by_time(start_of_day, end_of_day);
+      log_action('EMAIL_IBAN_RAW_TODAY_QUERY', `Found ${today_records.length} IBAN inserted today`);
+
+      const txt_content = generate_iban_txt(today_records);
+      const file_name = `IBAN_${y}-${m}-${d}.txt`;
+
+      const subject_with_count = `${subject} (${records.length})`;
+      await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);
 
       const mark_result = await mark_ibans_as_reported(records.map(r => r.id));
       log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBAN as reported`);
