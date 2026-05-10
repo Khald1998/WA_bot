@@ -12,13 +12,14 @@ function mark_national_ids_as_reported(national_id_ids) {
         }
 
         const placeholders = national_id_ids.map(() => '?').join(',');
+        const updated_at = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');
         const query = `
             UPDATE national_id
-            SET is_reported = 1, updated_at = datetime('now', '+3 hours')
+            SET is_reported = 1, updated_at = ?
             WHERE id IN (${placeholders})
         `;
-        
-        db.run(query, national_id_ids, function(err) {
+
+        db.run(query, [updated_at, ...national_id_ids], function(err) {
             if (err) {
                 console.error('Error marking national IDs as reported:', err.message);
                 reject(err);

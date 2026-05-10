@@ -2,6 +2,9 @@
 FPG.db
 FPG.db-shm
 FPG.db-wal
+FPG.db.bak*
+*.sqlite
+*.sqlite-journal
 
 # Ignore all media files
 media/*
