@@ -16,7 +16,6 @@ const email_csv_iban_api = require('../APIs/email_csv_iban_api');
 const email_csv_phone_api = require('../APIs/email_csv_phone_api');
 const email_csv_sadad_api = require('../APIs/email_csv_sadad_api');
 const email_csv_national_id_api = require('../APIs/email_csv_national_id_api');
-const email_raw_iban_api = require('../APIs/email_raw_iban_api');
 const email_raw_national_id_api = require('../APIs/email_raw_national_id_api');
 const email_raw_sadad_api = require('../APIs/email_raw_sadad_api');
 
@@ -44,7 +43,6 @@ app.use(email_csv_iban_api());
 app.use(email_csv_phone_api());
 app.use(email_csv_sadad_api());
 app.use(email_csv_national_id_api());
-app.use(email_raw_iban_api());
 app.use(email_raw_national_id_api());
 app.use(email_raw_sadad_api());
 
@@ -62,7 +60,6 @@ app.listen(port, () => {
   console.log('   → POST /email-csv-phone         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
   console.log('   → POST /email-csv-sadad         { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
   console.log('   → POST /email-csv-national-id   { "start_time": "<ISO_datetime>", "end_time": "<ISO_datetime>", "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>", "text_body": "<text>", "html_body": "<html>" }');
-  console.log('   → POST /email-raw-iban          { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>" }');
   console.log('   → POST /email-raw-national-id   { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>" }');
   console.log('   → POST /email-raw-sadad         { "to": ["<email>", ...], "cc": ["<email>", ...], "subject": "<subject>" }');
 });
