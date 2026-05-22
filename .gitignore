@@ -19,6 +19,9 @@ media/*
 # VS Code settings
 .vscode/
 
+# Claude Code agent state, worktrees, and settings
+.claude/
+
 # Package files
 /package-lock.json
 /package.json

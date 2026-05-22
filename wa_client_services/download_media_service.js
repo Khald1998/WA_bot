@@ -1,4 +1,3 @@
-const { error_report } = require('../debug/error_report_service');
 const fs = require('fs');
 const path = require('path');
 const { media_name_creation } = require('../services/media_name_creation_service');
@@ -43,7 +42,6 @@ async function download_media(client, message) {
     } catch (err) {
         // Log the error and report it, but don't crash the caller
         log_action('MEDIA_DOWNLOAD_ERROR', err.message);
-        error_report(null, { error_message: err.message });
         console.error('Media download failed:', err);
         return null;
     }

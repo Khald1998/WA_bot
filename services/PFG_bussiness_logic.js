@@ -1,4 +1,3 @@
-const { error_report } = require('../debug/error_report_service');
 const SERVICE_FILE_NAME = 'services/PFG_bussiness_logic.js';
 const FUNCTION_NAME = 'handle_group_message';
 const { get_sender_phone_number } = require('../getters/get_sender_number');
@@ -21,7 +20,6 @@ async function handle_group_message(client, message) {
         log_action('HANDLE_GROUP_MESSAGE_SUCCESS', `from: ${message.from}`);
     } catch (error) {
         log_action('HANDLE_GROUP_MESSAGE_ERROR', error.message);
-        error_report(client, { error_message: error.message });
         console.error('Error in handle_group_message:', error);
     }
 }

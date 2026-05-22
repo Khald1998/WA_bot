@@ -1,4 +1,3 @@
-const { error_report } = require('../debug/error_report_service');
 const SERVICE_FILE_NAME = 'getters/get_sender_number.js';
 const FUNCTION_NAME = 'get_sender_phone_number';
 const { log_action } = require('../debug/logger');
@@ -13,7 +12,6 @@ async function get_sender_phone_number(client, message) {
         return phone_number;
     } catch (error) {
         log_action('GET_SENDER_NUMBER_ERROR', error.message);
-        error_report(client, { error_message: error.message });
         console.error('Error in get_sender_phone_number:', error);
         return null;
     }

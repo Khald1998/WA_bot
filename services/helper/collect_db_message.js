@@ -1,4 +1,3 @@
-const { error_report } = require('../../debug/error_report_service');
 const SERVICE_FILE_NAME = 'services/helper/collect_db_message.js';
 const FUNCTION_NAME = 'collect_db_message';
 // services/helper/collect_db_message.js
@@ -49,7 +48,6 @@ function collect_db_message(message, phone_number) {
             is_processed: false
         };
     } catch (error) {
-        error_report(null, { error_message: error.message });
         log_action('COLLECT_DB_MESSAGE_ERROR', error.message);
         console.error('Error in collect_db_message:', error);
         return null;

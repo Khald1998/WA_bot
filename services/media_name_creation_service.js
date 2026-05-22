@@ -1,4 +1,3 @@
-const { error_report } = require('../debug/error_report_service');
 const SERVICE_FILE_NAME = 'services/media_name_creation_service.js';
 const FUNCTION_NAME = 'media_name_creation';
 const crypto = require('crypto');
@@ -12,7 +11,7 @@ function media_name_creation(client, media_size, media_time) {
         log_action('MEDIA_NAME_CREATION', `size: ${media_size}, time: ${media_time}, hash: ${hash}`);
         return hash;
     } catch (error) {
-        error_report(client, { error_message: error.message });
+        log_action('MEDIA_NAME_CREATION_ERROR', error.message);
         console.error('Error in media_name_creation:', error);
         return null;
     }
