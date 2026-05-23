@@ -2,8 +2,8 @@ const { promisify } = require('util');
 const { get_all_group_chat_history } = require('../getters/get_group_chat_history_service');
 const get_all_FPG_logs = promisify(require('../getters/get_all_FPG_logs'));
 const insert_message = require('../db/utility/insert_message');
-const collect_db_message = require('../services/helper/collect_db_message');
-const { get_sender_phone_number } = require('../getters/get_sender_number');
+const parser_wa_message = require('../parser/parser_wa_message');
+const { parser_sender_phone_number } = require('../parser/parser_sender_phone_number');
 const { download_media } = require('./download_media_service');
 const { log_action } = require('../debug/logger');
 
@@ -34,10 +34,10 @@ async function validate_chat_completeness(client) {
 
         for (const message of missing_messages) {
             try {
-                const phone_number = await get_sender_phone_number(client, message);
-                const db_message = collect_db_message(message, phone_number);
+                const phone_number = await parser_sender_phone_number(client, message);
+                const db_message = parser_wa_message(message, phone_number);
 
-                // collect_db_message returns null for message types we don't store
+                // parser_wa_message returns null for message types we don't store
                 if (db_message) {
                     // Download and attach any media before saving (returns null if no media)
                     db_message.media_id = await download_media(client, message);

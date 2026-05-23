@@ -1,11 +1,10 @@
-const SERVICE_FILE_NAME = 'services/helper/collect_db_message.js';
-const FUNCTION_NAME = 'collect_db_message';
-// services/helper/collect_db_message.js
-// Helper function to collect all required properties for dbMessage from a WhatsApp message object
-const { log_action } = require('../../debug/logger');
-function collect_db_message(message, phone_number) {
+const SERVICE_FILE_NAME = 'parser/parser_wa_message.js';
+const FUNCTION_NAME = 'parser_wa_message';
+// Builds the flat row object for FPG_logs from a whatsapp-web.js Message + resolved phone_number.
+const { log_action } = require('../debug/logger');
+function parser_wa_message(message, phone_number) {
     try {
-        log_action('COLLECT_DB_MESSAGE', `mid: ${message.id._serialized}`);
+        log_action('PARSER_WA_MESSAGE', `mid: ${message.id._serialized}`);
         return {
             mid: message.id.id,
             from_me: message.fromMe,
@@ -48,10 +47,10 @@ function collect_db_message(message, phone_number) {
             is_processed: false
         };
     } catch (error) {
-        log_action('COLLECT_DB_MESSAGE_ERROR', error.message);
-        console.error('Error in collect_db_message:', error);
+        log_action('PARSER_WA_MESSAGE_ERROR', error.message);
+        console.error('Error in parser_wa_message:', error);
         return null;
     }
 }
 
-module.exports = collect_db_message;
+module.exports = parser_wa_message;
