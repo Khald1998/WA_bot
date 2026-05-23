@@ -1,6 +1,5 @@
 const get_all_FPG_logs = require('../getters/get_all_FPG_logs');
 const get_all_IBAN_log_ids = require('../getters/get_all_IBAN_log_ids');
-const update_fpg_log = require('../db/utility/update_FPG_log');
 const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
@@ -120,8 +119,7 @@ async function store_evidence(result) {
 
     await Promise.all(writes);
 
-    // Store SADADs only if no IBAN was found in this log
-    if (result.iban.length === 0 && result.sadad.length > 0) {
+    if (result.sadad.length > 0) {
         await store_sadad(result.mid, result.sadad, result.log_body);
     }
 }
