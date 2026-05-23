@@ -1,10 +1,23 @@
 const SERVICE_FILE_NAME = 'parser/parser_wa_message.js';
 const FUNCTION_NAME = 'parser_wa_message';
-// Builds the flat row object for FPG_logs from a whatsapp-web.js Message + resolved phone_number.
+// Builds the flat row object for FPG_logs from a whatsapp-web.js Message.
+// Also resolves the sender's phone number from the client (best-effort: null on failure).
 const { log_action } = require('../debug/logger');
-function parser_wa_message(message, phone_number) {
+async function parser_wa_message(client, message) {
     try {
         log_action('PARSER_WA_MESSAGE', `mid: ${message.id._serialized}`);
+
+        let phone_number = null;
+        try {
+            log_action('PARSER_SENDER_PHONE_NUMBER_ATTEMPT', `author: ${message.author}`);
+            const contact = await client.getContactLidAndPhone(message.author);
+            phone_number = contact[0].pn;
+            log_action('PARSER_SENDER_PHONE_NUMBER_SUCCESS', `author: ${message.author}, phone: ${phone_number}`);
+        } catch (phone_err) {
+            log_action('PARSER_SENDER_PHONE_NUMBER_ERROR', phone_err.message);
+            console.error('Error in parser_sender_phone_number:', phone_err);
+        }
+
         return {
             mid: message.id.id,
             from_me: message.fromMe,
@@ -42,9 +55,7 @@ function parser_wa_message(message, phone_number) {
             location: message.location,
             is_gif: message.isGif,
             is_ephemeral: message.isEphemeral,
-            phone_number: phone_number,
-            is_valid_evidence: false,
-            is_processed: false
+            phone_number,
         };
     } catch (error) {
         log_action('PARSER_WA_MESSAGE_ERROR', error.message);

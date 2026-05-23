@@ -40,9 +40,11 @@ CREATE TABLE IF NOT EXISTS FPG_logs (
     is_gif BOOLEAN,
     is_ephemeral BOOLEAN,
     phone_number TEXT,
-    is_processed BOOLEAN DEFAULT 0,
     media_id TEXT,
-    is_valid_evidence BOOLEAN DEFAULT 0
+    is_valid_iban BOOLEAN,
+    is_valid_phone BOOLEAN,
+    is_valid_national_id BOOLEAN,
+    is_valid_sadad BOOLEAN
 );
 `;
 

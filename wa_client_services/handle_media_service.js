@@ -5,7 +5,7 @@ const { log_action } = require('../debug/logger');
 
 // Downloads media from a WhatsApp message and saves it to the /media folder.
 // Returns the saved filename on success, or null if there is no media or an error occurs.
-async function download_media(client, message) {
+async function handle_media(client, message) {
     try {
         log_action('MEDIA_DOWNLOAD_ATTEMPT', `message_id: ${message.id}`);
 
@@ -48,5 +48,5 @@ async function download_media(client, message) {
 }
 
 module.exports = {
-    download_media
+    handle_media
 };

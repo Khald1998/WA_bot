@@ -16,8 +16,8 @@ function insert_message(message_obj) {
         log_action('DB_INSERT_ATTEMPT', `mid: ${message_obj.mid}`);
         const stmt = db.prepare(`
             INSERT OR REPLACE INTO FPG_logs (
-                mid, _serialized, from_me, remote, participant, body, type, notify_name, is_new_msg, kic_notified, recv_fresh, is_from_template, is_ads_media, is_sent_cag_poll_creation, is_vcard_over_mms_document, is_forwarded, is_dynamic_reply_buttons_msg, is_carousel_card, is_video_call, is_call_link, is_md_history_msg, is_avatar, non_jid_mentions, media_key, has_media, timestamp, device_type, forwarding_score, is_status, is_starred, broadcast, has_quoted_msg, duration, location, is_gif, is_ephemeral, phone_number, is_processed, media_id
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                mid, _serialized, from_me, remote, participant, body, type, notify_name, is_new_msg, kic_notified, recv_fresh, is_from_template, is_ads_media, is_sent_cag_poll_creation, is_vcard_over_mms_document, is_forwarded, is_dynamic_reply_buttons_msg, is_carousel_card, is_video_call, is_call_link, is_md_history_msg, is_avatar, non_jid_mentions, media_key, has_media, timestamp, device_type, forwarding_score, is_status, is_starred, broadcast, has_quoted_msg, duration, location, is_gif, is_ephemeral, phone_number, media_id, is_valid_iban, is_valid_phone, is_valid_national_id, is_valid_sadad
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
         `);
         stmt.run([
             message_obj.mid,
@@ -57,7 +57,6 @@ function insert_message(message_obj) {
             message_obj.is_gif,
             message_obj.is_ephemeral,
             message_obj.phone_number,
-            message_obj.is_processed,
             message_obj.media_id
         ], function(err) {
             stmt.finalize();
