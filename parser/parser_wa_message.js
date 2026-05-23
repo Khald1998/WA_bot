@@ -15,7 +15,7 @@ async function parser_wa_message(client, message) {
             log_action('PARSER_SENDER_PHONE_NUMBER_SUCCESS', `author: ${message.author}, phone: ${phone_number}`);
         } catch (phone_err) {
             log_action('PARSER_SENDER_PHONE_NUMBER_ERROR', phone_err.message);
-            console.error('Error in parser_sender_phone_number:', phone_err);
+            console.error('Error resolving sender phone:', phone_err);
         }
 
         return {
