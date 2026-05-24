@@ -9,7 +9,7 @@ function get_all_FPG_logs(callback) {
     const db = new sqlite3.Database(db_path, sqlite3.OPEN_READONLY, (err) => {
         if (err) return callback(err);
     });
-    const query = `SELECT 
+    const query = `SELECT
         mid,
         from_me,
         remote,
@@ -29,7 +29,7 @@ function get_all_FPG_logs(callback) {
         forwarding_score,
         is_forwarded
     FROM FPG_logs`;
-    
+
     db.all(query, [], (err, rows) => {
         db.close();
         if (err) return callback(err);

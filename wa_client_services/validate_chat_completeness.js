@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const { get_all_group_chat_history } = require('../getters/get_group_chat_history_service');
+const { get_group_chat_history_by_time } = require('../getters/get_group_chat_history_by_time');
 const get_all_FPG_logs = promisify(require('../getters/get_all_FPG_logs'));
 const insert_message = require('../db/utility/insert_message');
 const parser_wa_message = require('../parser/parser_wa_message');
@@ -8,14 +8,13 @@ const { log_action } = require('../debug/logger');
 
 const GROUP_ID = '120363199265021169@g.us';
 
-// Compares the WhatsApp group history against the database and inserts any messages
-// that are missing. Returns a summary of what was found and inserted.
-async function validate_chat_completeness(client) {
+// Compares the WhatsApp group history within [start_time, end_time] against the
+// database and inserts any messages that are missing. Returns a summary.
+async function validate_chat_completeness(client, start_time, end_time) {
     try {
-        // Fetch the full WhatsApp group history and all saved DB records at the same time
-        log_action('VALIDATE_CHAT_COMPLETENESS_START', `group_id: ${GROUP_ID}`);
+        log_action('VALIDATE_CHAT_COMPLETENESS_START', `group_id: ${GROUP_ID}, window: ${start_time} → ${end_time}`);
         const [whatsapp_messages, db_messages] = await Promise.all([
-            get_all_group_chat_history(GROUP_ID, client),
+            get_group_chat_history_by_time(GROUP_ID, start_time, end_time, client),
             get_all_FPG_logs()
         ]);
         log_action('VALIDATE_CHAT_COMPLETENESS_FETCHED',

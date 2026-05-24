@@ -2,7 +2,6 @@
  * Fetches a WhatsApp group's messages within a [start_time, end_time] window from
  * live WA Web. WA Web only pages backwards from the newest message, so we page back
  * only until a batch reaches the window's start — never loading the whole history.
- * See get_group_chat_history_service.js for why we call loadEarlierMsgs directly.
  */
 
 const { Message } = require('whatsapp-web.js/src/structures');
