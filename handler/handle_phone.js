@@ -1,9 +1,10 @@
 const crypto = require('crypto');
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const add_or_update_phone = require('../db/utility/add_or_update_phone');
 const { log_action } = require('../debug/logger');
 
-const db = new sqlite3.Database('./FPG.db');
+const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
 
 async function handle_phone(phones, body, mid, serialized) {
     try {

@@ -1,7 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 function get_sadads_by_time(start_time, end_time) {
-  const db = new sqlite3.Database('./FPG.db');
+  const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
   const query = `
     SELECT id, FPG_logs_id, sadad_number, sadad_type, original_text, created_at, updated_at
     FROM sadad

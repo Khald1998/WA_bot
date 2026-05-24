@@ -2,7 +2,8 @@
 // Function to mark IBAN records as reported (is_reported=1)
 
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./FPG.db');
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));
 
 function mark_ibans_as_reported(iban_ids) {
     return new Promise((resolve, reject) => {

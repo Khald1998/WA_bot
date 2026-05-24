@@ -2,7 +2,8 @@
 // Function to add or update National ID records in the database
 
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./FPG.db');
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));
 
 function add_or_update_national_id({ id, FPG_logs_id, national_id_number, original_text, created_at, updated_at }) {
     const query = `

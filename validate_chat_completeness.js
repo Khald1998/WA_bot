@@ -1,20 +1,25 @@
-const { promisify } = require('util');
-const { get_group_chat_history_by_time } = require('../getters/get_group_chat_history_by_time');
-const get_all_FPG_logs = promisify(require('../getters/get_all_FPG_logs'));
-const insert_message = require('../db/utility/insert_message');
-const parser_wa_message = require('../parser/parser_wa_message');
-const { handle_media } = require('./handle_media_service');
-const { log_action } = require('../debug/logger');
-
+// =====================================================
+// EDIT THESE BEFORE RUNNING:
 const GROUP_ID = '120363199265021169@g.us';
+const START_TIME = '2026-05-24T00:00:00+03:00';
+const END_TIME = '2026-05-24T23:59:59+03:00';
+// =====================================================
 
-// Compares the WhatsApp group history within [start_time, end_time] against the
+const { promisify } = require('util');
+const { get_group_chat_history_by_time } = require('./getters/get_group_chat_history_by_time');
+const get_all_FPG_logs = promisify(require('./getters/get_all_FPG_logs'));
+const insert_message = require('./db/utility/insert_message');
+const parser_wa_message = require('./parser/parser_wa_message');
+const { handle_media } = require('./handler/handle_media_service');
+const { log_action } = require('./debug/logger');
+
+// Compares the WhatsApp group history within [START_TIME, END_TIME] against the
 // database and inserts any messages that are missing. Returns a summary.
-async function validate_chat_completeness(client, start_time, end_time) {
+async function validate_chat_completeness(client) {
     try {
-        log_action('VALIDATE_CHAT_COMPLETENESS_START', `group_id: ${GROUP_ID}, window: ${start_time} → ${end_time}`);
+        log_action('VALIDATE_CHAT_COMPLETENESS_START', `group_id: ${GROUP_ID}, window: ${START_TIME} → ${END_TIME}`);
         const [whatsapp_messages, db_messages] = await Promise.all([
-            get_group_chat_history_by_time(GROUP_ID, start_time, end_time, client),
+            get_group_chat_history_by_time(GROUP_ID, START_TIME, END_TIME, client),
             get_all_FPG_logs()
         ]);
         log_action('VALIDATE_CHAT_COMPLETENESS_FETCHED',

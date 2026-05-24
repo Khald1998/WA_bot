@@ -2,7 +2,8 @@
 // Function to retrieve all national_id records with is_reported=0
 
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./FPG.db');
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
 
 function get_unreported_national_ids() {
     return new Promise((resolve, reject) => {

@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./FPG.db');
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
 
 // Normalize IBAN: remove spaces and uppercase. Return null for missing values.
