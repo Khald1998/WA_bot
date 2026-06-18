@@ -29,6 +29,7 @@ media/*
 # Log files
 *.log
 eng.traineddata
+ara.traineddata
 
 # Environment variables (credentials)
 .env

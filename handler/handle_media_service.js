@@ -12,6 +12,12 @@ async function handle_media(client, message) {
         // Skip messages that don't have any media attached
         if (!message.hasMedia) return null;
 
+        // Skip stickers and videos — we don't store them
+        if (message.type === 'sticker' || message.type === 'video') {
+            log_action('MEDIA_DOWNLOAD_SKIP', `type: ${message.type}`);
+            return null;
+        }
+
         // Fetch the raw media data from WhatsApp
         const media = await message.downloadMedia();
 
