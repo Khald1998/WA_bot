@@ -3,6 +3,7 @@ FPG.db
 FPG.db-shm
 FPG.db-wal
 FPG.db.bak*
+FPG.db.pre_purge_*
 *.sqlite
 *.sqlite-journal
 

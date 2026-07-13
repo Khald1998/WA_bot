@@ -21,7 +21,6 @@ curl -sS -X POST http://localhost:3000/email-csv-iban \
     \"to\": [
       \"Tbinessa@saib.com.sa\",
       \"Alhajoojs@saib.com.sa\",
-      \"Hajajalmutairi@saib.com.sa\",
       \"Aalawn@saib.com.sa\",
       \"Aalsuwayri@saib.com.sa\",
       \"kalzahrani@saib.com.sa\",

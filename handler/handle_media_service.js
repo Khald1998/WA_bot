@@ -9,11 +9,8 @@ async function handle_media(client, message) {
     try {
         log_action('MEDIA_DOWNLOAD_ATTEMPT', `message_id: ${message.id}`);
 
-        // Skip messages that don't have any media attached
-        if (!message.hasMedia) return null;
-
-        // Skip stickers and videos — we don't store them
-        if (message.type === 'sticker' || message.type === 'video') {
+        // Only store images. Anything else (audio, ptt, document, video, sticker, …) is skipped.
+        if (message.type !== 'image') {
             log_action('MEDIA_DOWNLOAD_SKIP', `type: ${message.type}`);
             return null;
         }
