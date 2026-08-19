@@ -5,7 +5,7 @@ const FUNCTION_NAME = 'parser_wa_message';
 const { log_action } = require('../debug/logger');
 async function parser_wa_message(client, message) {
     try {
-        log_action('PARSER_WA_MESSAGE', `mid: ${message.id._serialized}`);
+        log_action('PARSER_WA_MESSAGE', `mid: ${message.id['$1']}`);
 
         let phone_number = null;
         try {
@@ -23,7 +23,7 @@ async function parser_wa_message(client, message) {
             from_me: message.fromMe,
             remote: message.from,
             participant: message.author,
-            _serialized: message.id._serialized,
+            _serialized: message.id['$1'],
             body: message.body,
             type: message.type,
             notify_name: message.notifyName,

@@ -71,7 +71,10 @@ async function send_unreported_iban_email(to, cc, subject) {
     log_action('EMAIL_IBAN_RAW_TODAY_QUERY', `Found ${today_records.length} IBAN inserted today`);
 
     const txt_content = generate_iban_txt(today_records);
-    const file_name = `IBAN_${y}-${m}-${d}.txt`;
+    const h = String(ksa_now.getUTCHours()).padStart(2, '0');
+    const min = String(ksa_now.getUTCMinutes()).padStart(2, '0');
+    const s = String(ksa_now.getUTCSeconds()).padStart(2, '0');
+    const file_name = `IBAN_${y}-${m}-${d}_${h}-${min}-${s}.txt`;
 
     const subject_with_count = `${subject} (${records.length})`;
     await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);

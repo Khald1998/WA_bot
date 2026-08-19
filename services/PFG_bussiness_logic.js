@@ -8,7 +8,6 @@ const handle_iban = require('../handler/handle_iban');
 const handle_phone = require('../handler/handle_phone');
 const handle_national_id = require('../handler/handle_national_id');
 const handle_sadad = require('../handler/handle_sadad');
-const handle_reaction = require('../handler/handle_reaction');
 const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
@@ -41,7 +40,6 @@ async function handle_group_message(client, message) {
             handle_phone(phones, message.body, db_message.mid, db_message._serialized);
             handle_national_id(national_ids, message.body, db_message.mid, db_message._serialized);
             handle_sadad(sadads, message.body, db_message.mid, db_message._serialized);
-            handle_reaction(client, db_message._serialized, { ibans, national_ids, sadads });
         }
         log_action('HANDLE_GROUP_MESSAGE_SUCCESS', `from: ${message.from}`);
     } catch (error) {

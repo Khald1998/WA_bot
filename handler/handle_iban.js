@@ -10,7 +10,6 @@ const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
 const TO = [
   'Tbinessa@saib.com.sa',
   'Alhajoojs@saib.com.sa',
-  'Hajajalmutairi@saib.com.sa',
   'Aalawn@saib.com.sa',
   'Aalsuwayri@saib.com.sa',
   'kalzahrani@saib.com.sa',
