@@ -37,3 +37,7 @@ ara.traineddata
 
 # HTTP request config (contains smtp settings)
 HTTP_request/email_config.js
+
+# OCR-fill runtime files (lock + scratch list)
+.ocr_fill.lock
+.ocr_fill_todo.txt

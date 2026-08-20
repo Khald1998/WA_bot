@@ -12,9 +12,11 @@ const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
 const parser_sadad = require('../parser/parser_sadad');
+const { run_ocr } = require('./ocr_runner');
 // Groups the bot captures messages from.
 const MONITORED_GROUPS = new Set([
     '120363199265021169@g.us', // 🏧جمع الحسابات البنكية المستغلة🏧
+    '120363428576950977@g.us', // مفوترات (SADAD / bills)
     '120363409424227940@g.us', // Test
 ]);
 
@@ -30,6 +32,8 @@ async function handle_group_message(client, message) {
             const db_message = await parser_wa_message(client, message);
             db_message.media_id = media_id;
             await insert_message(db_message);
+
+            if (media_id) run_ocr(media_id);
 
             const ibans = parser_iban(message.body);
             const phones = parser_phone(message.body);

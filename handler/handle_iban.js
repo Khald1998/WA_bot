@@ -17,7 +17,9 @@ const TO = [
   'abdulazizalrayes@saib.com.sa',
   'a.alshebl@saib.com.sa',
   'm.alanazi@saib.com.sa',
-  'oalharbi@saib.com.sa'
+  'oalharbi@saib.com.sa',
+  'jaibabtain@saib.com.sa',
+  'ralrasheed@saib.com.sa'
 ];
 const CC = [
   'aalasmari@saib.com.sa',

@@ -28,7 +28,9 @@ curl -sS -X POST http://localhost:3000/email-csv-sadad \
       \"abdulazizalrayes@saib.com.sa\",
       \"a.alshebl@saib.com.sa\",
       \"m.alanazi@saib.com.sa\",
-      \"oalharbi@saib.com.sa\"
+      \"oalharbi@saib.com.sa\",
+      \"jaibabtain@saib.com.sa\",
+      \"ralrasheed@saib.com.sa\"
     ],
     \"cc\": [
       \"aalasmari@saib.com.sa\",
