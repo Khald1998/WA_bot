@@ -12,7 +12,7 @@ const parser_iban = require('../parser/parser_iban');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
 const parser_sadad = require('../parser/parser_sadad');
-const { run_ocr } = require('./ocr_runner');
+const { ocr_image } = require('./ocr_image');
 // Groups the bot captures messages from.
 const MONITORED_GROUPS = new Set([
     '120363199265021169@g.us', // 🏧جمع الحسابات البنكية المستغلة🏧
@@ -33,14 +33,17 @@ async function handle_group_message(client, message) {
             db_message.media_id = media_id;
             await insert_message(db_message);
 
-            if (media_id) run_ocr(media_id);
+            // Fold any image's OCR text into the IBAN source so image IBANs go through
+            // the exact same handle_iban (store + report) as a normal message body.
+            const image_text = media_id ? await ocr_image(media_id) : '';
+            const iban_text = image_text ? `${message.body}\n${image_text}` : message.body;
 
-            const ibans = parser_iban(message.body);
+            const ibans = parser_iban(iban_text);            // parse body + image OCR text
             const phones = parser_phone(message.body);
             const national_ids = parser_national_id(message.body);
             const sadads = parser_sadad(message.body);
 
-            handle_iban(ibans, message.body, db_message.mid, db_message._serialized);
+            handle_iban(ibans, message.body, db_message.mid, db_message._serialized);  // store clean body only
             handle_phone(phones, message.body, db_message.mid, db_message._serialized);
             handle_national_id(national_ids, message.body, db_message.mid, db_message._serialized);
             handle_sadad(sadads, message.body, db_message.mid, db_message._serialized);
