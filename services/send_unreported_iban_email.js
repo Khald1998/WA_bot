@@ -12,6 +12,7 @@ const get_unreported_ibans = require('../getters/get_unreported_IBANs');
 const get_ibans_by_time = require('../getters/get_ibans_by_time');
 const generate_iban_txt = require('../generate_report/generate_iban_txt');
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
+const archive_attachment = require('./archive_attachment');
 
 const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -65,6 +66,9 @@ async function send_unreported_iban_email(to, cc, subject) {
     const y = ksa_now.getUTCFullYear();
     const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');
     const d = String(ksa_now.getUTCDate()).padStart(2, '0');
+
+    // The attachment is a running daily list: every IBAN spotted today (KSA),
+    // reported or not, so the latest file is the complete day-so-far.
     const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;
     const end_of_day = `${y}-${m}-${d}T23:59:59.999+03:00`;
     const today_records = await get_ibans_by_time(start_of_day, end_of_day);
@@ -77,6 +81,9 @@ async function send_unreported_iban_email(to, cc, subject) {
     const file_name = `IBAN_${y}-${m}-${d}_${h}-${min}-${s}.txt`;
 
     const subject_with_count = `${subject} (${records.length})`;
+
+    archive_attachment(file_name, txt_content, to, cc, records.length);
+
     await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);
 
     const mark_result = await mark_ibans_as_reported(records.map(r => r.id));

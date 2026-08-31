@@ -7,6 +7,7 @@ const sqlite3 = require('sqlite3');
 const { log_action } = require('../debug/logger');
 
 const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 
 function ocr_image(media_id) {
     return new Promise((resolve) => {
