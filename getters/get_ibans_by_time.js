@@ -3,6 +3,7 @@ const path = require('path');
 
 function get_ibans_by_time(start_time, end_time) {
   const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
   const query = `
     SELECT id, FPG_logs_id, iban_number, original_text, created_at, updated_at
     FROM IBAN

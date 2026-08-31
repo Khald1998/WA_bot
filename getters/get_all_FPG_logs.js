@@ -7,6 +7,7 @@ const db_path = path.join(__dirname, '../FPG.db');
 
 function get_all_FPG_logs(callback) {
     const db = new sqlite3.Database(db_path, sqlite3.OPEN_READONLY, (err) => {
+db.run('PRAGMA busy_timeout = 5000');
         if (err) return callback(err);
     });
     const query = `SELECT

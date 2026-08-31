@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
 
 // Normalize IBAN: remove spaces and uppercase. Return null for missing values.
