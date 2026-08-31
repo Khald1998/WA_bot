@@ -14,49 +14,49 @@ function validate_ibans(ibans) {
     return valid_ibans;
 }
 
+const FORMATTING_RE = /[\s\-\*\u00A0\u3000]/g; // whitespace, dashes, asterisks
+const IBAN_RE = /[A-Z]{2}\d{2}[A-Z0-9]{1,30}/g;
+
 function parser_iban(text) {
     if (typeof text !== 'string') {
         return [];
     }
 
-    // Step 1: Remove acceptable formatting characters (all whitespace types and dashes)
-    let cleaned_text = text
-        .trim()                    // Remove leading/trailing whitespace
-        .replace(/-/g, '')         // Remove dashes
-        .replace(/\*/g, '')        // Remove asterisks
-        .replace(/ /g, '')         // Remove spaces
-        .replace(/\t/g, '')        // Remove tabs
-        .replace(/\n/g, '')        // Remove newlines
-        .replace(/\r/g, '')        // Remove carriage returns
-        .replace(/\u00A0/g, '')    // Remove non-breaking spaces
-        .replace(/\u3000/g, '')    // Remove ideographic spaces
-        .toUpperCase();
-    
-    // Step 2: Find IBAN patterns (2 letters + 2 digits + 1-30 alphanumerics)
-    const iban_regex = /[A-Z]{2}\d{2}[A-Z0-9]{1,30}/g;
-    let potential_matches = cleaned_text.match(iban_regex) || [];
-    
-    // Step 3: If no matches found and text contains only valid IBAN chars starting with digits,
-    // try prefixing with 'SA' (Saudi Arabia)
-    if (potential_matches.length === 0) {
-        // Extract only alphanumeric characters for the fallback check
-        const alphanumeric_only = cleaned_text.replace(/[^A-Z0-9]/g, '');
-        
-        // If it starts with digits (no country code), prefix with 'SA'
+    const upper = text.toUpperCase();
+    const candidates = [];
+
+    // Strategy 1: per-line matching. OCR text carries garbage on adjacent lines
+    // that fuses with the IBAN once newlines are stripped \u2014 matching each line
+    // on its own keeps the IBAN clean.
+    for (const line of upper.split(/[\r\n]+/)) {
+        const clean = line.replace(FORMATTING_RE, '');
+        candidates.push(...(clean.match(IBAN_RE) || []));
+    }
+
+    // Strategy 2: fully joined text, for IBANs split across lines.
+    const joined = upper.replace(FORMATTING_RE, '');
+    candidates.push(...(joined.match(IBAN_RE) || []));
+
+    // Strategy 3: SA sliding window on the joined text. When garbage digits sit
+    // directly before/after an IBAN, the greedy regex grabs an over-long match
+    // that fails validation \u2014 taking exactly SA + 22 chars at every SA
+    // occurrence recovers the real IBAN.
+    let idx = -1;
+    while ((idx = joined.indexOf('SA', idx + 1)) !== -1) {
+        const window = joined.substr(idx, 24);
+        if (window.length === 24) candidates.push(window);
+    }
+
+    // Strategy 4: bare digit runs with no country code \u2014 prefix with 'SA'.
+    if (candidates.length === 0) {
+        const alphanumeric_only = joined.replace(/[^A-Z0-9]/g, '');
         if (/^\d/.test(alphanumeric_only) && alphanumeric_only.length > 0) {
-            const with_prefix = 'SA' + alphanumeric_only;
-            potential_matches = with_prefix.match(iban_regex) || [];
+            candidates.push(...(('SA' + alphanumeric_only).match(IBAN_RE) || []));
         }
     }
-    
-    // Step 4: Filter out matches that contain invalid characters (like #)
-    // This check is now per-match, not for the whole text
-    potential_matches = potential_matches.filter(iban => {
-        return /^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(iban);
-    });
-    
-    // Step 5: Validate the candidates
-    return validate_ibans(potential_matches);
+
+    const well_formed = candidates.filter(iban => /^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(iban));
+    return [...new Set(validate_ibans(well_formed))];
 }
 
 module.exports = parser_iban;

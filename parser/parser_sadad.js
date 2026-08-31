@@ -415,30 +415,41 @@ const KNOWN_TYPES = new Set(SADAD_TYPES.map(t => t.padStart(3, '0')));
 
 // Bill-number labels — the 8-16 digit bill must follow one of these.
 // Both ة (Teh-Marbuta) and ه (Heh) spellings are observed in real messages.
-const BILL_RE = /(?:رقم\s+السداد|رقم\s+الفاتور[ةه]|الفاتور[ةه]\s*:|معرف\s+سداد|رقم\s+سداد|فاتورة\s+رقم)[\s:*\n]*(\d{8,16})/g;
+const BILL_RE = /(?:فاتورة\s+سداد\s+برقم|رقم\s+السداد|رقم\s+الفاتور[ةه]|الفاتور[ةه]\s*:|معرف\s+سداد|رقم\s+سداد|فاتورة\s+رقم)[\s:*\n]*(\d{8,16})/g;
 
 // Type-code labels — 1-3 digit code following one of these.
-const TYPE_RE = /(?:رقم\s+المفوتر|رقم\s+معرف\s+سداد|المفوتر|مفوتر)[\s:*\.\n]*(\d{1,3})/g;
+const TYPE_RE = /(?:رمز\s+المفوتر|رقم\s+المفوتر|رقم\s+معرف\s+سداد|المفوتر|مفوتر)[\s:*\.\n]*\(?(\d{1,3})\)?/g;
 
 // Fallback: bare 3-digit token (no adjacent digits) matching a known type.
 // Handles messages where the type code sits alone above the labeled bill.
 const STANDALONE_3DIGIT_RE = /(?<!\d)\d{3}(?!\d)/g;
 
 
-function parser_sadad(text) {
-    if (typeof text !== 'string' || !text.includes('سداد')) return [];
+function parser_sadad(text, from_sadad_group = false) {
+    if (typeof text !== 'string') return [];
+    if (!from_sadad_group && !text.includes('سداد') && !text.includes('مفوتر')) return [];
 
     const bills = [...new Set([...text.matchAll(BILL_RE)].map(m => m[1]))];
-    if (bills.length === 0) return [];
 
     let type_code = [...text.matchAll(TYPE_RE)].map(m => m[1].padStart(3, '0'))[0];
     if (!type_code) {
         const candidates = text.match(STANDALONE_3DIGIT_RE) || [];
         type_code = candidates.find(n => KNOWN_TYPES.has(n));
     }
-    if (!type_code) return [];
 
-    return bills.map(b => ({ sadad_number: b, sadad_type: type_code }));
+    if (from_sadad_group && bills.length === 0) {
+        const bare = (text.match(/(?<!\d)\d{8,16}(?!\d)/g) || []);
+        bare.forEach(b => bills.push(b));
+    }
+
+    if (!type_code && !from_sadad_group) return [];
+    if (!type_code) type_code = '';
+
+    if (bills.length === 0) {
+        if (type_code) return [{ sadad_number: 'ALERT', sadad_type: type_code }];
+        return [];
+    }
+    return [...new Set(bills)].map(b => ({ sadad_number: b, sadad_type: type_code }));
 }
 
 module.exports = parser_sadad;
