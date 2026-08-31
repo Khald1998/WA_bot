@@ -29,7 +29,7 @@ curl -sS -X POST http://localhost:3000/email-csv-national-id \
       \"a.alshebl@saib.com.sa\",
       \"m.alanazi@saib.com.sa\",
       \"oalharbi@saib.com.sa\",
-      \"jaibabtain@saib.com.sa\",
+      \"jalbabtain@saib.com.sa\",
       \"ralrasheed@saib.com.sa\"
     ],
     \"cc\": [
