@@ -29,6 +29,7 @@ media/*
 
 # Log files
 *.log
+Logs/
 eng.traineddata
 ara.traineddata
 
