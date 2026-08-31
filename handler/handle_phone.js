@@ -5,6 +5,7 @@ const add_or_update_phone = require('../db/utility/add_or_update_phone');
 const { log_action } = require('../debug/logger');
 
 const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 
 async function handle_phone(phones, body, mid, serialized) {
     try {

@@ -16,9 +16,7 @@ async function handle_media(client, message) {
         }
 
         // Fetch the raw media data from WhatsApp
-        const media = await message.downloadMedia();
-
-        // If the download returned nothing, bail out early
+        const media = await message.downloadMedia().catch(() => null);
         if (!media || !media.data) return null;
 
         // Calculate file size from the base64-encoded data (used for naming)

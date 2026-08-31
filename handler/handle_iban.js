@@ -6,6 +6,7 @@ const send_unreported_iban_email = require('../services/send_unreported_iban_ema
 const { log_action } = require('../debug/logger');
 
 const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 
 const TO = [
   'Tbinessa@saib.com.sa',
@@ -18,7 +19,7 @@ const TO = [
   'a.alshebl@saib.com.sa',
   'm.alanazi@saib.com.sa',
   'oalharbi@saib.com.sa',
-  'jaibabtain@saib.com.sa',
+  'jalbabtain@saib.com.sa',
   'ralrasheed@saib.com.sa'
 ];
 const CC = [
