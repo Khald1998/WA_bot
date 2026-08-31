@@ -5,6 +5,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const db_path = path.join(__dirname, '../../FPG.db');
 const db = new sqlite3.Database(db_path);
+db.run('PRAGMA busy_timeout = 5000');
 const FPG_logs = require('../schema/FPG_logs');
 
 // Ensure table exists

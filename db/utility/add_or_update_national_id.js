@@ -4,6 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 
 function add_or_update_national_id({ id, FPG_logs_id, national_id_number, original_text, created_at, updated_at }) {
     const query = `

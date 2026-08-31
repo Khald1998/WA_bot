@@ -16,6 +16,7 @@ const db = new sqlite3.Database(db_path);
 db.run('PRAGMA journal_mode = WAL;', (err) => {
     if (err) console.error('Error enabling WAL mode:', err.message);
 });
+db.run('PRAGMA busy_timeout = 5000');
 
 // Create tables if they don't exist
 db.serialize(() => {

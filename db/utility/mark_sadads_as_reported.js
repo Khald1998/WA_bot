@@ -4,6 +4,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));
+db.run('PRAGMA busy_timeout = 5000');
 
 function mark_sadads_as_reported(sadad_ids) {
     return new Promise((resolve, reject) => {
