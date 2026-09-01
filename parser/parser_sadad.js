@@ -420,36 +420,84 @@ const BILL_RE = /(?:فاتورة\s+سداد\s+برقم|رقم\s+السداد|ر�
 // Type-code labels — 1-3 digit code following one of these.
 const TYPE_RE = /(?:رمز\s+المفوتر|رقم\s+المفوتر|رقم\s+معرف\s+سداد|المفوتر|مفوتر)[\s:*\.\n]*\(?(\d{1,3})\)?/g;
 
-// Fallback: bare 3-digit token (no adjacent digits) matching a known type.
-// Handles messages where the type code sits alone above the labeled bill.
-const STANDALONE_3DIGIT_RE = /(?<!\d)\d{3}(?!\d)/g;
+// Fallback: bare 3-digit token matching a known type. Handles messages where
+// the type code sits alone above the labeled bill. The comma in the lookbehind
+// rejects thousands groups inside amounts ("1,068﷼", "18,858") that would
+// otherwise be misread as a biller code.
+const STANDALONE_3DIGIT_RE = /(?<![\d,])\d{3}(?!\d)/g;
 
+// WhatsApp @mentions are numeric user IDs (LIDs), never bills — they must be
+// stripped before matching or a thank-you note that tags people gets stored
+// as bills. e.g. "@71288487952499" is a mention, not a SADAD bill.
+const MENTION_RE = /@\d+/g;
+
+// Bare 8-16 digit run with no label. Used only inside the SADAD group, and
+// only when no labeled bill was found.
+const BARE_BILL_RE = /(?<!\d)\d{8,16}(?!\d)/g;
+
+// Position of a captured group inside a full regex match (absolute in text).
+function group_pos(match, group) {
+    return match.index + match[0].lastIndexOf(group);
+}
+
+// The type code whose occurrence sits closest to a bill (by absolute distance).
+// A message can carry several bills from different billers, each labeled with
+// its own code before or after it — so per-bill nearest beats one global type.
+function nearest_type(pos, type_occs) {
+    if (type_occs.length === 0) return '';
+    let best = type_occs[0];
+    for (const t of type_occs) {
+        if (Math.abs(t.pos - pos) < Math.abs(best.pos - pos)) best = t;
+    }
+    return best.code;
+}
 
 function parser_sadad(text, from_sadad_group = false) {
     if (typeof text !== 'string') return [];
     if (!from_sadad_group && !text.includes('سداد') && !text.includes('مفوتر')) return [];
 
-    const bills = [...new Set([...text.matchAll(BILL_RE)].map(m => m[1]))];
+    // Drop @mentions so their numeric IDs can never be read as bills.
+    const clean = text.replace(MENTION_RE, ' ');
 
-    let type_code = [...text.matchAll(TYPE_RE)].map(m => m[1].padStart(3, '0'))[0];
-    if (!type_code) {
-        const candidates = text.match(STANDALONE_3DIGIT_RE) || [];
-        type_code = candidates.find(n => KNOWN_TYPES.has(n));
+    // Type occurrences with positions: labeled codes plus bare known-type
+    // tokens (e.g. a standalone "153" above the bill).
+    const type_occs = [];
+    for (const m of clean.matchAll(TYPE_RE)) {
+        type_occs.push({ code: m[1].padStart(3, '0'), pos: group_pos(m, m[1]) });
+    }
+    for (const m of clean.matchAll(STANDALONE_3DIGIT_RE)) {
+        if (KNOWN_TYPES.has(m[0])) type_occs.push({ code: m[0], pos: m.index });
     }
 
-    if (from_sadad_group && bills.length === 0) {
-        const bare = (text.match(/(?<!\d)\d{8,16}(?!\d)/g) || []);
-        bare.forEach(b => bills.push(b));
+    // Bill occurrences with positions: labeled bills first; only if none are
+    // found (and we're in the SADAD group) fall back to bare digit runs.
+    const bill_occs = [];
+    for (const m of clean.matchAll(BILL_RE)) {
+        bill_occs.push({ num: m[1], pos: group_pos(m, m[1]) });
+    }
+    if (bill_occs.length === 0 && from_sadad_group) {
+        for (const m of clean.matchAll(BARE_BILL_RE)) {
+            bill_occs.push({ num: m[0], pos: m.index });
+        }
     }
 
-    if (!type_code && !from_sadad_group) return [];
-    if (!type_code) type_code = '';
-
-    if (bills.length === 0) {
-        if (type_code) return [{ sadad_number: 'ALERT', sadad_type: type_code }];
+    if (bill_occs.length === 0) {
+        // A biller type was named but no bill number found — flag for review.
+        if (type_occs.length > 0) return [{ sadad_number: 'ALERT', sadad_type: type_occs[0].code }];
         return [];
     }
-    return [...new Set(bills)].map(b => ({ sadad_number: b, sadad_type: type_code }));
+
+    // Outside the SADAD group, require a detected type (stricter, as before).
+    if (!from_sadad_group && type_occs.length === 0) return [];
+
+    const seen = new Set();
+    const out = [];
+    for (const b of bill_occs) {
+        if (seen.has(b.num)) continue;
+        seen.add(b.num);
+        out.push({ sadad_number: b.num, sadad_type: nearest_type(b.pos, type_occs) });
+    }
+    return out;
 }
 
 module.exports = parser_sadad;

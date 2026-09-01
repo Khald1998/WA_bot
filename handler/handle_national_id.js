@@ -35,7 +35,10 @@ async function handle_national_id(national_ids, body, mid, serialized) {
             log_action('HANDLE_NATIONAL_ID', `mid: ${mid}, count: ${national_ids.length}`);
             const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');
             await Promise.all(national_ids.map(national_id_number => {
-                const id = crypto.createHash('sha256').update(mid + ':' + national_id_number).digest('hex');
+                // ID from the national-id alone (not the message id) so the same
+                // value re-posted in different messages maps to ONE row — a
+                // reported national-id is never emailed again.
+                const id = crypto.createHash('sha256').update('nid:' + national_id_number).digest('hex');
                 return add_or_update_national_id({
                     id,
                     FPG_logs_id: mid,

@@ -13,7 +13,9 @@ function add_or_update_sadad({ id, FPG_logs_id, sadad_number, sadad_type, origin
         ON CONFLICT(id) DO UPDATE SET
             FPG_logs_id = excluded.FPG_logs_id,
             sadad_number = excluded.sadad_number,
-            sadad_type = excluded.sadad_type,
+            -- keep a known biller type; only overwrite when the new row has one,
+            -- so a re-post that parsed no type can't wipe an existing type.
+            sadad_type = CASE WHEN excluded.sadad_type <> '' THEN excluded.sadad_type ELSE sadad_type END,
             original_text = excluded.original_text,
             updated_at = excluded.updated_at;
     `;

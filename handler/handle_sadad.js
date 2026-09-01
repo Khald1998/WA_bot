@@ -35,7 +35,10 @@ async function handle_sadad(sadads, body, mid, serialized) {
             log_action('HANDLE_SADAD', `mid: ${mid}, count: ${sadads.length}`);
             const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');
             await Promise.all(sadads.map(({ sadad_number, sadad_type }) => {
-                const id = crypto.createHash('sha256').update(mid + ':' + sadad_number).digest('hex');
+                // ID is derived from the bill number ALONE (not the message id) so the
+                // same bill re-posted in different messages maps to ONE row — a bill
+                // already reported to the bank is never emailed again.
+                const id = crypto.createHash('sha256').update('sadad:' + sadad_number).digest('hex');
                 return add_or_update_sadad({
                     id,
                     FPG_logs_id: mid,
