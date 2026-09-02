@@ -13,6 +13,8 @@ const parser_iban_ocr = require('../parser/parser_iban_ocr');
 const parser_phone = require('../parser/parser_phone');
 const parser_national_id = require('../parser/parser_national_id');
 const parser_sadad = require('../parser/parser_sadad');
+const parser_sadad_ocr = require('../parser/parser_sadad_ocr');
+const link_quoted_sadad_code = require('./link_quoted_sadad_code');
 const { ocr_image } = require('./ocr_image');
 // The one group that carries SADAD / bill messages.
 const SADAD_GROUP = '120363428576950977@g.us'; // مفوترات
@@ -47,14 +49,32 @@ async function handle_group_message(client, message) {
             const national_ids = parser_national_id(message.body);
 
             // SADAD is only captured in the SADAD group. In other groups a
-            // similar-looking bill number is not SADAD, so we skip it.
+            // similar-looking bill number is not SADAD, so we skip it. In the
+            // group, bills come from typed text AND any image's OCR (a bill table
+            // is often posted as an image with the biller code in its header).
             const from_sadad_group = chat_id === SADAD_GROUP;
-            const sadads = from_sadad_group ? parser_sadad(message.body, true) : [];
+            // A bill with no biller code is skipped entirely (not stored). Its code
+            // may still arrive later as a reply — see the reply-linking below.
+            const sadads = from_sadad_group
+                ? [...parser_sadad(message.body, true), ...parser_sadad_ocr(image_text, true)]
+                    .filter(s => s.sadad_type !== '')
+                : [];
 
             await handle_iban(ibans, message.body, db_message.mid, db_message._serialized);
             await handle_phone(phones, message.body, db_message.mid, db_message._serialized);
             await handle_national_id(national_ids, message.body, db_message.mid, db_message._serialized);
             await handle_sadad(sadads, message.body, db_message.mid, db_message._serialized);
+
+            // Reply-based code linking: if THIS message carries a biller code and
+            // replies to an earlier bill message, fill that quoted bill's blank
+            // code — e.g. someone replies to a code-less bill with "لمفوتر 050".
+            if (from_sadad_group && db_message.quoted_msg_id) {
+                const reply_code = parser_sadad.extract_sadad_code(message.body)
+                    || parser_sadad.extract_sadad_code(image_text);
+                if (reply_code) {
+                    await link_quoted_sadad_code(db_message.quoted_msg_id, reply_code);
+                }
+            }
         }
         log_action('HANDLE_GROUP_MESSAGE_SUCCESS', `from: ${message.from}`);
     } catch (error) {

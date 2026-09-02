@@ -18,6 +18,18 @@ async function parser_wa_message(client, message) {
             console.error('Error resolving sender phone:', phone_err);
         }
 
+        // Serialized id of the message this one replies to (null if not a reply).
+        // Lets a code-reply be linked back to the quoted bill message later.
+        let quoted_msg_id = null;
+        if (message.hasQuotedMsg) {
+            try {
+                const quoted = await message.getQuotedMessage();
+                quoted_msg_id = quoted?.id?._serialized ?? quoted?.id?.['$1'] ?? null;
+            } catch (quote_err) {
+                log_action('PARSER_QUOTED_MSG_ERROR', quote_err.message);
+            }
+        }
+
         return {
             mid: message.id.id,
             from_me: message.fromMe,
@@ -56,6 +68,7 @@ async function parser_wa_message(client, message) {
             is_gif: message.isGif,
             is_ephemeral: message.isEphemeral,
             phone_number,
+            quoted_msg_id,
         };
     } catch (error) {
         log_action('PARSER_WA_MESSAGE_ERROR', error.message);

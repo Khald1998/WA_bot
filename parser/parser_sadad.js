@@ -499,4 +499,18 @@ function parser_sadad(text, from_sadad_group = false) {
     return out;
 }
 
+// Extract just the biller code from text (no bill needed). Used for reply-based
+// code linking: a reply like "لمفوتر 050" carries the code for the quoted bill.
+// Prefers a labeled code (TYPE_RE); falls back to a bare known-type token.
+function extract_sadad_code(text) {
+    if (typeof text !== 'string') return '';
+    const clean = text.replace(MENTION_RE, ' ');
+    for (const m of clean.matchAll(TYPE_RE)) return m[1].padStart(3, '0');
+    for (const m of clean.matchAll(STANDALONE_3DIGIT_RE)) {
+        if (KNOWN_TYPES.has(m[0])) return m[0];
+    }
+    return '';
+}
+
+parser_sadad.extract_sadad_code = extract_sadad_code;
 module.exports = parser_sadad;

@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS FPG_logs (
     is_valid_iban BOOLEAN,
     is_valid_phone BOOLEAN,
     is_valid_national_id BOOLEAN,
-    is_valid_sadad BOOLEAN
+    is_valid_sadad BOOLEAN,
+    quoted_msg_id TEXT
 );
 `;
 
