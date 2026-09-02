@@ -8,6 +8,9 @@
 const email_service = require('./email_service');
 const { log_action } = require('../debug/logger');
 const get_unreported_sadads = require('../getters/get_unreported_sadads');
+const get_sadads_by_time = require('../getters/get_sadads_by_time');
+const generate_sadad_txt = require('../generate_report/generate_sadad_txt');
+const archive_attachment = require('./archive_attachment');
 const mark_sadads_as_reported = require('../db/utility/mark_sadads_as_reported');
 
 const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -59,8 +62,30 @@ async function send_unreported_sadad_email(to, cc, subject) {
     }
 
     const { text, html } = build_body(records);
+
+    // Attachment = every SADAD spotted today (KSA) as "<bill>,<type>," per line —
+    // a running daily list, mirroring the IBAN email's .txt attachment.
+    const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);
+    const y = ksa_now.getUTCFullYear();
+    const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(ksa_now.getUTCDate()).padStart(2, '0');
+    const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;
+    const end_of_day = `${y}-${m}-${d}T23:59:59.999+03:00`;
+    const today_records = await get_sadads_by_time(start_of_day, end_of_day);
+    log_action('EMAIL_SADAD_RAW_TODAY_QUERY', `Found ${today_records.length} SADAD inserted today`);
+
+    const txt_content = generate_sadad_txt(today_records);
+    const h = String(ksa_now.getUTCHours()).padStart(2, '0');
+    const min = String(ksa_now.getUTCMinutes()).padStart(2, '0');
+    const s = String(ksa_now.getUTCSeconds()).padStart(2, '0');
+    const file_name = `SADAD_${y}-${m}-${d}_${h}-${min}-${s}.txt`;
+
     const subject_with_count = `${subject} (${records.length})`;
-    await email_service(to, cc, subject_with_count, text, html);
+
+    // Archive the exact attachment bytes before sending (audit trail).
+    archive_attachment(file_name, txt_content, to, cc, records.length, 'SADAD');
+
+    await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);
 
     const mark_result = await mark_sadads_as_reported(records.map(r => r.id));
     log_action('EMAIL_SADAD_RAW_MARK_REPORTED', `Marked ${mark_result.changes} SADAD as reported`);

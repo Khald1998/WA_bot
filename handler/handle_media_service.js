@@ -15,7 +15,9 @@ async function handle_media(client, message) {
             return null;
         }
 
-        // Fetch the raw media data from WhatsApp
+        // Fetch the raw media data from WhatsApp. downloadMedia works reliably
+        // now that the getMessageModel _serialized shim (whatsapp_client_service.js)
+        // fixes the WA `$1`/`_serialized` rename that used to break it.
         const media = await message.downloadMedia().catch(() => null);
         if (!media || !media.data) return null;
 

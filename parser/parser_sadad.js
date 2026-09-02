@@ -481,11 +481,10 @@ function parser_sadad(text, from_sadad_group = false) {
         }
     }
 
-    if (bill_occs.length === 0) {
-        // A biller type was named but no bill number found — flag for review.
-        if (type_occs.length > 0) return [{ sadad_number: 'ALERT', sadad_type: type_occs[0].code }];
-        return [];
-    }
+    // No bill number => nothing to report. A real SADAD bill always carries both
+    // the number and the biller code in the same message, so a type without a
+    // bill is just chatter (e.g. an info note mentioning a biller) — skip it.
+    if (bill_occs.length === 0) return [];
 
     // Outside the SADAD group, require a detected type (stricter, as before).
     if (!from_sadad_group && type_occs.length === 0) return [];
