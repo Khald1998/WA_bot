@@ -1,4 +1,4 @@
-// db/utility/get_unreported_sadads.js
+// getters/get_unreported_sadads.js
 // Function to retrieve all SADAD records with is_reported=0
 
 const sqlite3 = require('sqlite3').verbose();  // load sqlite3 driver in verbose mode

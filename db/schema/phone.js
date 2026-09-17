@@ -1,5 +1,5 @@
-// db/schema/PII.js
-// Defines the SQLite schema for storing Personally Identifiable Information (PII)
+// db/schema/phone.js
+// Defines the SQLite schema for storing captured phone numbers
 
 const phone = `
 CREATE TABLE IF NOT EXISTS phone (

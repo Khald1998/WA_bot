@@ -1,6 +1,6 @@
 // Sends the "unreported IBAN" email: emails every is_reported=0 IBAN, attaches
-// today's IBANs as a .txt, then marks the emailed records reported. Extracted from
-// the /email-raw-iban route so the message listener can call it too.
+// today's IBANs as a .txt, then marks the emailed records reported. Called
+// directly from the message listener (handle_iban).
 //
 // Sends are serialized (one at a time) so two near-simultaneous triggers can't
 // both read the same unreported IBAN before either marks it reported — which

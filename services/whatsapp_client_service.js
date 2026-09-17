@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'services/whatsapp_client_service.js';  // this module's own relative path label
-const FUNCTION_NAME = 'create_whatsapp_client';  // name of the factory function this file exports
 const qrcode = require('qrcode-terminal');  // renders the login QR code as ASCII in the terminal
 const { Client, LocalAuth } = require('whatsapp-web.js');  // WhatsApp Web client class and local session auth
 const { log_action } = require('../debug/logger');  // structured logger used across the bot

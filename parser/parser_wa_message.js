@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'parser/parser_wa_message.js';  // this module's name, used in log messages
-const FUNCTION_NAME = 'parser_wa_message';  // this function's name, used in logging
 // Builds the flat row object for FPG_logs from a whatsapp-web.js Message.
 // Also resolves the sender's phone number from the client (best-effort: null on failure).
 const { log_action } = require('../debug/logger');  // structured action logger

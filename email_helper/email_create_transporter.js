@@ -2,9 +2,6 @@ const nodemailer = require('nodemailer');      // load the nodemailer library fo
 
 const email_config = {      // define the shared SMTP/email configuration object
   service: 'gmail',      // use Gmail's well-known service preset
-  host: 'smtp.gmail.com',      // Gmail SMTP server hostname
-  port: 587,      // SMTP submission port (STARTTLS)
-  secure: false,      // start unencrypted then upgrade via STARTTLS
   user: process.env.EMAIL_USER,      // SMTP login username from the environment
   pass: process.env.EMAIL_PASS,      // SMTP login password from the environment
   from: process.env.EMAIL_FROM,      // default from-address from the environment

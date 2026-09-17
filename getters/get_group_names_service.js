@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'getters/get_group_names_service.js';      // this module's path label for logging
-const FUNCTION_NAME = 'get_group_names';      // this function's name label for logging
 const { log_action } = require('../debug/logger');      // import the structured action logger
 
 async function get_group_names(client) {      // fetch the list of WhatsApp group chats for the client

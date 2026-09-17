@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'services/media_name_creation_service.js';  // this module's own file path, for logging/reference
-const FUNCTION_NAME = 'media_name_creation';  // the exported function's name, for logging/reference
 const crypto = require('crypto');  // load Node's crypto module for hashing
 const { log_action } = require('../debug/logger');  // pull in the structured action logger
 

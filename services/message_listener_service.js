@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'services/message_listener_service.js';  // this module's own file path, for logging/reference
-const FUNCTION_NAME = 'attach_message_listener';  // the exported function's name, for logging/reference
 // services/message_listener_service.js
 // This module attaches a listener to the WhatsApp client for incoming messages.
 

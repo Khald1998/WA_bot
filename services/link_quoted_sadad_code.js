@@ -28,7 +28,7 @@ async function link_quoted_sadad_code(quoted_serialized, code) {   // link a rep
         if (!quoted || !quoted.body) return;                       // bail if the quoted message or its body is missing
 
         const bills = [...new Set(parser_sadad(quoted.body, true).map(b => b.sadad_number))]  // parse and dedupe bill numbers from the quoted body
-            .filter(n => n && n !== 'ALERT');                       // drop empty values and the ALERT sentinel
+            .filter(n => n);                                       // drop empty values
         if (bills.length === 0) return;                            // bail if no usable bill numbers remain
 
         const sadads = bills.map(n => ({ sadad_number: n, sadad_type: code }));  // pair each bill number with the reply's code

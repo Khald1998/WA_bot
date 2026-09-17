@@ -1,4 +1,4 @@
-// db/utility/get_unreported_national_ids.js
+// getters/get_unreported_national_ids.js
 // Function to retrieve all national_id records with is_reported=0
 
 const sqlite3 = require('sqlite3').verbose();  // load sqlite3 driver in verbose mode

@@ -37,12 +37,5 @@ db.serialize(() => {                                               // run the ta
     });                                                            // end the sadad creation callback
 });                                                                // end the serialized table setup
 
-const insert_message = require('./utility/insert_message');        // load the insert_message utility
-
-module.exports = {                                                 // export the shared db objects
-    db,                                                            // the open database connection
-    insert_message                                                 // the message insertion helper
-};                                                                 // end module exports
-
 
 

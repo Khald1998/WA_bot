@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'getters/get_individual_chats_service.js';      // this module's path label for logging
-const FUNCTION_NAME = 'get_individual_chats';      // this function's name label for logging
 const { log_action } = require('../debug/logger');      // import the structured action logger
 
 async function get_individual_chats(client) {      // fetch the list of one-to-one WhatsApp chats

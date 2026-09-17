@@ -1,8 +1,7 @@
 // parser/parser_sadad_ocr.js
 // SADAD extraction tuned for OCR (image) text.
 //
-// NOT WIRED into the pipeline yet — standalone module. Wire it in
-// services/PFG_bussiness_logic.js (feed ocr_image text) when ready.
+// Wired into the pipeline in services/PFG_bussiness_logic.js (fed ocr_image text).
 //
 // SADAD bill numbers have NO check digit, so an OCR misread can't be detected or
 // repaired — this parser never guesses digits. Two guards keep OCR output clean:

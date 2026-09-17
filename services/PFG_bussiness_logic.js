@@ -1,5 +1,3 @@
-const SERVICE_FILE_NAME = 'services/PFG_bussiness_logic.js';  // this module's name, used in log messages
-const FUNCTION_NAME = 'handle_group_message';  // primary handler name, used in logging
 const insert_message = require('../db/utility/insert_message');  // DB helper that writes a message row
 const parser_wa_message = require('../parser/parser_wa_message');  // turns a WA Message into a flat DB row
 const { handle_media } = require('../handler/handle_media_service');  // downloads and archives attached media
