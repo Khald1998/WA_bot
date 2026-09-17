@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS IBAN (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;
+`;  // end IBAN CREATE TABLE statement text
 
-module.exports = IBAN;
+module.exports = IBAN;  // export the schema string

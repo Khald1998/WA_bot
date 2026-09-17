@@ -1,26 +1,26 @@
-const express = require('express');
-const router = express.Router();
-const email_service = require('../services/email_service');
-const { log_action } = require('../debug/logger');
+const express = require('express');                                              // load the Express framework
+const router = express.Router();                                                 // create a router for this API's routes
+const email_service = require('../services/email_service');                      // helper that actually sends the email
+const { log_action } = require('../debug/logger');                               // structured action logger
 
-const get_unreported_national_ids = require('../getters/get_unreported_national_ids');
-const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');
+const get_unreported_national_ids = require('../getters/get_unreported_national_ids');   // fetch is_reported=0 national IDs
+const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');   // flag rows as reported
 
-const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));   // HTML-escape a value for safe email markup
 
-function build_body(records) {
-  const total = records.length;
+function build_body(records) {                                                   // build plain-text and HTML email bodies
+  const total = records.length;                                                  // count of records being emailed
 
-  const text_lines = ['Unreported National ID Records', `Total: ${total}`, ''];
-  records.forEach((r, i) => {
-    text_lines.push(
-      `Record ${i + 1}`,
-      `national_id_number: ${r.national_id_number ?? ''}`,
-      `original_text: ${r.original_text ?? ''}`,
-      `created_at: ${r.created_at ?? ''}`,
-      ''
-    );
-  });
+  const text_lines = ['Unreported National ID Records', `Total: ${total}`, ''];  // seed the plain-text lines with a header
+  records.forEach((r, i) => {                                                     // append each record to the text body
+    text_lines.push(                                                             // push this record's lines
+      `Record ${i + 1}`,                                                         // record number header
+      `national_id_number: ${r.national_id_number ?? ''}`,                       // the national ID value
+      `original_text: ${r.original_text ?? ''}`,                                 // the source text it came from
+      `created_at: ${r.created_at ?? ''}`,                                       // when the record was created
+      ''                                                                         // blank spacer line between records
+    );                                                                           // end push call
+  });                                                                            // end forEach
 
   const html_records = records.map((r, i) => `
     <div style="border:1px solid #ddd;padding:12px;margin:8px 0;border-radius:6px;">
@@ -28,57 +28,57 @@ function build_body(records) {
       <strong>national_id_number:</strong> ${escape_html(r.national_id_number)}<br>
       <strong>original_text:</strong> ${escape_html(r.original_text)}<br>
       <strong>created_at:</strong> ${escape_html(r.created_at)}
-    </div>`).join('');
+    </div>`).join('');                                                           // render each record as an HTML card and join
 
-  const html = `<h2>Unreported National ID Records</h2><p><strong>Total:</strong> ${total}</p><hr>${html_records}`;
+  const html = `<h2>Unreported National ID Records</h2><p><strong>Total:</strong> ${total}</p><hr>${html_records}`;   // wrap cards with heading and total
 
-  return { text: text_lines.join('\n'), html };
-}
+  return { text: text_lines.join('\n'), html };                                  // return both body variants
+}                                                                                // end build_body
 
-module.exports = () => {
-  router.post('/email-raw-national-id', async (req, res) => {
-    const { to, cc, subject } = req.body;
+module.exports = () => {                                                         // export a factory that returns the router
+  router.post('/email-raw-national-id', async (req, res) => {                    // POST endpoint to email unreported national IDs
+    const { to, cc, subject } = req.body;                                        // pull recipients and subject from the request
 
-    if (
-      !to || !Array.isArray(to) || to.length === 0 ||
-      !cc || !Array.isArray(cc) || cc.length === 0 ||
-      !subject
-    ) {
-      log_action('API_EMAIL_RAW_NATIONAL_ID_ATTEMPT', 'Missing required fields');
-      return res.status(400).json({
-        error: 'Request body must contain "to" (array), "cc" (array), and "subject" fields.'
-      });
-    }
+    if (                                                                         // validate the required request fields
+      !to || !Array.isArray(to) || to.length === 0 ||                            // "to" must be a non-empty array
+      !cc || !Array.isArray(cc) || cc.length === 0 ||                            // "cc" must be a non-empty array
+      !subject                                                                   // "subject" must be present
+    ) {                                                                          // if any check fails
+      log_action('API_EMAIL_RAW_NATIONAL_ID_ATTEMPT', 'Missing required fields');   // log the bad request
+      return res.status(400).json({                                             // respond 400 Bad Request
+        error: 'Request body must contain "to" (array), "cc" (array), and "subject" fields.'   // explain the missing fields
+      });                                                                        // end error response
+    }                                                                            // end validation block
 
-    try {
-      const records = await get_unreported_national_ids();
-      log_action('EMAIL_NATIONAL_ID_RAW_QUERY_SUCCESS', `Found ${records.length} unreported National ID`);
+    try {                                                                        // attempt the query, email, and mark flow
+      const records = await get_unreported_national_ids();                       // load all unreported national IDs
+      log_action('EMAIL_NATIONAL_ID_RAW_QUERY_SUCCESS', `Found ${records.length} unreported National ID`);   // log how many were found
 
-      if (records.length === 0) {
-        log_action('EMAIL_NATIONAL_ID_RAW_NO_DATA', 'No unreported National ID found');
-        return res.json({ success: false, message: 'No unreported National ID found' });
-      }
+      if (records.length === 0) {                                                // nothing to report
+        log_action('EMAIL_NATIONAL_ID_RAW_NO_DATA', 'No unreported National ID found');   // log the empty result
+        return res.json({ success: false, message: 'No unreported National ID found' });   // respond that there is nothing to send
+      }                                                                          // end empty-result branch
 
-      const { text, html } = build_body(records);
-      await email_service(to, cc, subject, text, html);
+      const { text, html } = build_body(records);                               // build the two email bodies
+      await email_service(to, cc, subject, text, html);                         // send the email
 
-      const mark_result = await mark_national_ids_as_reported(records.map(r => r.id));
-      log_action('EMAIL_NATIONAL_ID_RAW_MARK_REPORTED', `Marked ${mark_result.changes} National ID as reported`);
-      return res.json({
-        success: true,
-        record_count: records.length,
-        marked_as_reported: mark_result.changes,
-        sent_to: to,
-        cc
-      });
-    } catch (err) {
-      log_action('API_EMAIL_RAW_NATIONAL_ID_ERROR', err.message);
-      return res.status(500).json({
-        error: 'Failed to email unreported National ID. See server logs for details.',
-        details: err.message
-      });
-    }
-  });
+      const mark_result = await mark_national_ids_as_reported(records.map(r => r.id));   // mark the emailed rows as reported
+      log_action('EMAIL_NATIONAL_ID_RAW_MARK_REPORTED', `Marked ${mark_result.changes} National ID as reported`);   // log how many were marked
+      return res.json({                                                         // respond with a success summary
+        success: true,                                                          // operation succeeded
+        record_count: records.length,                                           // number of records emailed
+        marked_as_reported: mark_result.changes,                                // number of rows marked reported
+        sent_to: to,                                                            // echo the "to" recipients
+        cc                                                                      // echo the "cc" recipients
+      });                                                                        // end success response
+    } catch (err) {                                                              // any failure in the flow
+      log_action('API_EMAIL_RAW_NATIONAL_ID_ERROR', err.message);               // log the error message
+      return res.status(500).json({                                             // respond 500 Internal Server Error
+        error: 'Failed to email unreported National ID. See server logs for details.',   // generic error message
+        details: err.message                                                    // include the raw error detail
+      });                                                                        // end error response
+    }                                                                            // end catch
+  });                                                                            // end route handler
 
-  return router;
-};
+  return router;                                                                 // hand the configured router back
+};                                                                               // end exported factory

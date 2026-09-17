@@ -47,6 +47,6 @@ CREATE TABLE IF NOT EXISTS FPG_logs (
     is_valid_sadad BOOLEAN,
     quoted_msg_id TEXT
 );
-`;
+`;  // close the CREATE TABLE schema template literal
 
-module.exports = FPG_logs;
+module.exports = FPG_logs;  // export the schema SQL string for the DB initializer

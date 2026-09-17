@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS sadad (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;
+`;                                                                 // end the SADAD table schema SQL string
 
-module.exports = sadad;
+module.exports = sadad;                                            // export the SADAD schema SQL

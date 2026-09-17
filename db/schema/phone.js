@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS phone (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;
+`;  // end of the CREATE TABLE template literal for the phone table
 
-module.exports = phone;
+module.exports = phone;  // export the phone-table DDL string

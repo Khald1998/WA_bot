@@ -13,17 +13,17 @@
 // Note: this is a WRITE to the WhatsApp channel. Other group members
 // see "🤖 reacted with X". Use deliberately.
 
-const { log_action } = require('../debug/logger');
+const { log_action } = require('../debug/logger');  // import the action logger helper
 
-async function react_to_message(client, message_id, emoji) {
-    try {
-        await client.sendReaction(message_id, emoji);
-        log_action('REACT_SUCCESS', `mid: ${message_id}, emoji: ${emoji || '(cleared)'}`);
-        return { success: true, message_id, emoji };
-    } catch (err) {
-        log_action('REACT_ERROR', `mid: ${message_id}, emoji: ${emoji}, error: ${err.message}`);
-        throw err;
-    }
-}
+async function react_to_message(client, message_id, emoji) {  // define the reaction primitive
+    try {                                             // guard the WhatsApp write
+        await client.sendReaction(message_id, emoji);  // send the reaction to WhatsApp
+        log_action('REACT_SUCCESS', `mid: ${message_id}, emoji: ${emoji || '(cleared)'}`);  // log the successful reaction
+        return { success: true, message_id, emoji };  // return a success result object
+    } catch (err) {                                   // handle any send failure
+        log_action('REACT_ERROR', `mid: ${message_id}, emoji: ${emoji}, error: ${err.message}`);  // log the failed reaction
+        throw err;                                    // re-throw so callers can handle it
+    }                                                 // end catch block
+}                                                     // end function
 
-module.exports = react_to_message;
+module.exports = react_to_message;                    // export the reaction primitive

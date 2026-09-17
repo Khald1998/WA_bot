@@ -6,29 +6,29 @@
 // both read the same unreported IBAN before either marks it reported — which
 // would email the same IBAN to the bank twice.
 
-const email_service = require('./email_service');
-const { log_action } = require('../debug/logger');
-const get_unreported_ibans = require('../getters/get_unreported_IBANs');
-const get_ibans_by_time = require('../getters/get_ibans_by_time');
-const generate_iban_txt = require('../generate_report/generate_iban_txt');
-const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');
-const archive_attachment = require('./archive_attachment');
+const email_service = require('./email_service');  // email sender that delivers the message + attachment
+const { log_action } = require('../debug/logger');  // structured action logger
+const get_unreported_ibans = require('../getters/get_unreported_IBANs');  // fetch IBANs with is_reported=0
+const get_ibans_by_time = require('../getters/get_ibans_by_time');  // fetch IBANs within a time range
+const generate_iban_txt = require('../generate_report/generate_iban_txt');  // render IBAN records into .txt text
+const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');  // flip records to is_reported=1
+const archive_attachment = require('./archive_attachment');  // save a copy of the sent attachment
 
-const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));  // HTML-escape a value for safe embedding
 
-function build_body(records) {
-  const total = records.length;
+function build_body(records) {  // build the text + html email bodies from records
+  const total = records.length;  // count of records to report
 
-  const text_lines = ['Unreported IBAN Records', `Total: ${total}`, ''];
-  records.forEach((r, i) => {
-    text_lines.push(
-      `Record ${i + 1}`,
-      `iban_number: ${r.iban_number ?? ''}`,
-      `original_text: ${r.original_text ?? ''}`,
-      `created_at: ${r.created_at ?? ''}`,
-      ''
-    );
-  });
+  const text_lines = ['Unreported IBAN Records', `Total: ${total}`, ''];  // seed the plain-text lines with a header
+  records.forEach((r, i) => {  // append a plain-text block per record
+    text_lines.push(  // push this record's lines
+      `Record ${i + 1}`,  // record heading (1-based index)
+      `iban_number: ${r.iban_number ?? ''}`,  // the IBAN value, blank if null
+      `original_text: ${r.original_text ?? ''}`,  // the source text it was parsed from
+      `created_at: ${r.created_at ?? ''}`,  // insertion timestamp
+      ''  // blank spacer line between records
+    );  // end push call
+  });  // end forEach
 
   const html_records = records.map((r, i) => `
     <div style="border:1px solid #ddd;padding:12px;margin:8px 0;border-radius:6px;">
@@ -36,69 +36,69 @@ function build_body(records) {
       <strong>iban_number:</strong> ${escape_html(r.iban_number)}<br>
       <strong>original_text:</strong> ${escape_html(r.original_text)}<br>
       <strong>created_at:</strong> ${escape_html(r.created_at)}
-    </div>`).join('');
+    </div>`).join('');  // close the per-record template and join all record blocks
 
-  const html = `<h2>Unreported IBAN Records</h2><p><strong>Total:</strong> ${total}</p><hr>${html_records}`;
+  const html = `<h2>Unreported IBAN Records</h2><p><strong>Total:</strong> ${total}</p><hr>${html_records}`;  // assemble the full HTML body
 
-  return { text: text_lines.join('\n'), html };
-}
+  return { text: text_lines.join('\n'), html };  // return joined text body and html body
+}  // end build_body
 
 // Mutex: each call waits for the previous to finish before taking the slot.
-let queue = Promise.resolve();
-async function send_unreported_iban_email(to, cc, subject) {
-  const previous = queue;
-  let release;
-  queue = new Promise(r => { release = r; });
-  try {
-    await previous;
+let queue = Promise.resolve();  // mutex chain; starts already resolved
+async function send_unreported_iban_email(to, cc, subject) {  // send + mark unreported IBANs, serialized
+  const previous = queue;  // capture the currently pending tail of the chain
+  let release;  // will hold this call's resolve function
+  queue = new Promise(r => { release = r; });  // install a new tail others must wait on
+  try {  // guard so the slot is always released
+    await previous;  // wait for any earlier send to finish first
 
-    const records = await get_unreported_ibans();
-    log_action('EMAIL_IBAN_RAW_QUERY_SUCCESS', `Found ${records.length} unreported IBAN`);
+    const records = await get_unreported_ibans();  // load all is_reported=0 IBANs
+    log_action('EMAIL_IBAN_RAW_QUERY_SUCCESS', `Found ${records.length} unreported IBAN`);  // log how many were found
 
-    if (records.length === 0) {
-      log_action('EMAIL_IBAN_RAW_NO_DATA', 'No unreported IBAN found');
-      return { success: false, message: 'No unreported IBAN found' };
-    }
+    if (records.length === 0) {  // nothing to report
+      log_action('EMAIL_IBAN_RAW_NO_DATA', 'No unreported IBAN found');  // log the empty result
+      return { success: false, message: 'No unreported IBAN found' };  // bail out early
+    }  // end empty-check
 
-    const { text, html } = build_body(records);
+    const { text, html } = build_body(records);  // build both email body formats
 
-    const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);
-    const y = ksa_now.getUTCFullYear();
-    const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(ksa_now.getUTCDate()).padStart(2, '0');
+    const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);  // current time shifted to KSA (UTC+3)
+    const y = ksa_now.getUTCFullYear();  // KSA year
+    const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');  // KSA month, zero-padded
+    const d = String(ksa_now.getUTCDate()).padStart(2, '0');  // KSA day, zero-padded
 
     // The attachment is a running daily list: every IBAN spotted today (KSA),
     // reported or not, so the latest file is the complete day-so-far.
-    const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;
-    const end_of_day = `${y}-${m}-${d}T23:59:59.999+03:00`;
-    const today_records = await get_ibans_by_time(start_of_day, end_of_day);
-    log_action('EMAIL_IBAN_RAW_TODAY_QUERY', `Found ${today_records.length} IBAN inserted today`);
+    const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;  // KSA midnight start bound
+    const end_of_day = `${y}-${m}-${d}T23:59:59.999+03:00`;  // KSA end-of-day bound
+    const today_records = await get_ibans_by_time(start_of_day, end_of_day);  // all IBANs inserted today
+    log_action('EMAIL_IBAN_RAW_TODAY_QUERY', `Found ${today_records.length} IBAN inserted today`);  // log today's count
 
-    const txt_content = generate_iban_txt(today_records);
-    const h = String(ksa_now.getUTCHours()).padStart(2, '0');
-    const min = String(ksa_now.getUTCMinutes()).padStart(2, '0');
-    const s = String(ksa_now.getUTCSeconds()).padStart(2, '0');
-    const file_name = `IBAN_${y}-${m}-${d}_${h}-${min}-${s}.txt`;
+    const txt_content = generate_iban_txt(today_records);  // render today's IBANs into .txt content
+    const h = String(ksa_now.getUTCHours()).padStart(2, '0');  // KSA hour, zero-padded
+    const min = String(ksa_now.getUTCMinutes()).padStart(2, '0');  // KSA minute, zero-padded
+    const s = String(ksa_now.getUTCSeconds()).padStart(2, '0');  // KSA second, zero-padded
+    const file_name = `IBAN_${y}-${m}-${d}_${h}-${min}-${s}.txt`;  // timestamped attachment filename
 
-    const subject_with_count = `${subject} (${records.length})`;
+    const subject_with_count = `${subject} (${records.length})`;  // append the record count to the subject
 
-    archive_attachment(file_name, txt_content, to, cc, records.length);
+    archive_attachment(file_name, txt_content, to, cc, records.length);  // save a local copy of the attachment
 
-    await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);
+    await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);  // send the email
 
-    const mark_result = await mark_ibans_as_reported(records.map(r => r.id));
-    log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBAN as reported`);
+    const mark_result = await mark_ibans_as_reported(records.map(r => r.id));  // mark the emailed IBANs reported
+    log_action('EMAIL_IBAN_RAW_MARK_REPORTED', `Marked ${mark_result.changes} IBAN as reported`);  // log the update count
 
-    return {
-      success: true,
-      record_count: records.length,
-      marked_as_reported: mark_result.changes,
-      sent_to: to,
-      cc
-    };
-  } finally {
-    release();
-  }
-}
+    return {  // report success back to the caller
+      success: true,  // operation succeeded
+      record_count: records.length,  // how many IBANs were emailed
+      marked_as_reported: mark_result.changes,  // how many rows were flipped to reported
+      sent_to: to,  // primary recipient(s)
+      cc  // carbon-copy recipient(s)
+    };  // end return object
+  } finally {  // always runs, success or throw
+    release();  // free the mutex slot for the next call
+  }  // end finally
+}  // end send_unreported_iban_email
 
-module.exports = send_unreported_iban_email;
+module.exports = send_unreported_iban_email;  // export the sender function

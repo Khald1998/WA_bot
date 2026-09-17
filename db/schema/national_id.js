@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS national_id (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;
+`;  // end table-creation SQL string
 
-module.exports = national_id;
+module.exports = national_id;  // export the national_id table schema string
