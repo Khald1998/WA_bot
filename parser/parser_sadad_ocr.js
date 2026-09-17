@@ -16,23 +16,25 @@
 //     tables carry the biller code (e.g. "رقم المفوتر: 050"), and every bill in
 //     them gets that single code.
 
-const parser_sadad = require('./parser_sadad');
+const parser_sadad = require('./parser_sadad');  // reuse the text SADAD parser
 
-const AR_DIGITS = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
+const AR_DIGITS = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };  // map Arabic-Indic digits to ASCII digits
 
-function normalize_ocr(text) {
-    return text
+function normalize_ocr(text) {  // clean OCR text before parsing
+    return text  // start the chained replacements
         .replace(/[٠-٩]/g, c => AR_DIGITS[c])   // Arabic-Indic digits -> ASCII
         .replace(/[ 　]/g, ' ')        // exotic spaces -> normal
         .replace(/\+[\d ]{6,}/g, ' ')           // strip phone numbers ("+90 535 399 32 41")
         .replace(/[ \t]{2,}/g, ' ');            // collapse runs of spaces/tabs (keep newlines)
-}
+}  // end normalize_ocr
 
-function parser_sadad_ocr(text, from_sadad_group = false) {
-    if (typeof text !== 'string') return [];
-    const res = parser_sadad(normalize_ocr(text), from_sadad_group);
+function parser_sadad_ocr(text, from_sadad_group = false) {  // parse SADAD bills from OCR text
+    if (typeof text !== 'string') return [];  // ignore non-string input
+    // allow_placeholder=false: OCR bills are only trusted when they carry a real
+    // biller code, so no '000' placeholder is assigned from noisy image text.
+    const res = parser_sadad(normalize_ocr(text), from_sadad_group, false);  // parse normalized text, no placeholder codes
     // Only trust OCR bills that came with a biller code (guard #2).
-    return res.filter(r => r.sadad_type !== '');
-}
+    return res.filter(r => r.sadad_type !== '');  // keep only bills that carried a biller code
+}  // end parser_sadad_ocr
 
-module.exports = parser_sadad_ocr;
+module.exports = parser_sadad_ocr;  // export the OCR parser

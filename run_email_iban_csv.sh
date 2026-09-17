@@ -19,23 +19,13 @@ curl -sS -X POST http://localhost:3000/email-csv-iban \
     \"start_time\": \"${START_TIME}\",
     \"end_time\": \"${END_TIME}\",
     \"to\": [
-      \"Tbinessa@saib.com.sa\",
-      \"Alhajoojs@saib.com.sa\",
-      \"Aalawn@saib.com.sa\",
-      \"Aalsuwayri@saib.com.sa\",
-      \"kalzahrani@saib.com.sa\",
-      \"h.almutairi@saib.com.sa\",
-      \"abdulazizalrayes@saib.com.sa\",
-      \"a.alshebl@saib.com.sa\",
-      \"m.alanazi@saib.com.sa\",
-      \"oalharbi@saib.com.sa\",
+      \"ralrasheed@saib.com.sa\",
       \"jalbabtain@saib.com.sa\",
-      \"ralrasheed@saib.com.sa\"
+      \"aalasmari@saib.com.sa\",
+      \"kalzahrani@saib.com.sa\"
     ],
     \"cc\": [
-      \"aalasmari@saib.com.sa\",
-      \"Analshammari@saib.com.sa\",
-      \"Alharbif@saib.com.sa\"
+      \"aalasmari@saib.com.sa\"
     ],
     \"text_body\": \"${TEXT_BODY}\",
     \"html_body\": \"${HTML_BODY}\"
