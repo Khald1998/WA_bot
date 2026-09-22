@@ -1,12 +1,9 @@
-// db/utility/add_or_update_IBAN.js
-// Function to add or update IBAN records in the database
-
 const sqlite3 = require('sqlite3').verbose();  // load sqlite3 with verbose stack traces
 const path = require('path');  // load path helper for building the db location
 const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database file
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s if the db is locked
 
-function add_or_update_iban({ id, FPG_logs_id, iban_number, original_text, created_at, updated_at }) {  // upsert one IBAN record from destructured fields
+function add_or_update_iban({ id, FPG_logs_id, iban_number, original_text, created_at, updated_at }) {  // function to add or update IBAN records in the database; upsert one IBAN record from destructured fields
     const query = `
         INSERT INTO IBAN (id, FPG_logs_id, iban_number, original_text, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)

@@ -1,11 +1,5 @@
-// Sends the "unreported National ID" email: emails every is_reported=0 national_id,
-// then marks the emailed records reported.
-//
-// Sends are serialized (one at a time) so two near-simultaneous triggers can't
-// both read the same unreported national_id before either marks it reported —
-// which would email the same national_id to the bank twice.
 
-const email_service = require('./email_service');                               // helper that actually sends the email
+const email_service = require('./email_service');                               // helper that actually sends the email; module sends the "unreported National ID" email: emails every is_reported=0 national_id, then marks the emailed records reported; sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported national_id before either marks it reported — which would email the same national_id to the bank twice
 const { log_action } = require('../debug/logger');                              // structured action logger
 const get_unreported_national_ids = require('../getters/get_unreported_national_ids');   // fetch is_reported=0 national IDs
 const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');   // flag rows as reported
@@ -39,8 +33,7 @@ function build_body(records) {                                                  
   return { text: text_lines.join('\n'), html };                                 // return both body variants
 }                                                                               // end build_body
 
-// Mutex: each call waits for the previous to finish before taking the slot.
-let queue = Promise.resolve();                                                  // shared tail of the serialization chain
+let queue = Promise.resolve();                                                  // shared tail of the serialization chain; mutex: each call waits for the previous to finish before taking the slot
 async function send_unreported_national_id_email(to, cc, subject) {             // email + mark unreported IDs, one call at a time
   const previous = queue;                                                       // capture the current chain tail to wait on
   let release;                                                                  // will hold this call's completion signal

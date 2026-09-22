@@ -1,15 +1,11 @@
-// APIs/get_individual_chats_api.js
-// API for getting all individual (non-group) chats
-
-const express = require('express');  // web framework used to build the HTTP API
+const express = require('express');  // web framework used to build the HTTP API; api for getting all individual (non-group) chats
 const { get_individual_chats } = require('../getters/get_individual_chats_service');  // service that lists individual chats
 const { log_action } = require('../debug/logger');  // structured action logger
 
 module.exports = (client, get_client_ready) => {  // export a factory that builds the router
   const router = express.Router();  // create an isolated Express router
 
-  // GET /individual_chats - Return a list of individual chat names
-  router.get('/individual_chats', async (req, res) => {  // register the individual-chats GET endpoint
+  router.get('/individual_chats', async (req, res) => {  // GET /individual_chats returns a list of individual chat names; register the individual-chats GET endpoint
     if (!get_client_ready()) {  // reject requests before the WhatsApp client is ready
       log_action('API_INDIVIDUAL_CHATS_ATTEMPT', 'Client not ready');  // log the premature attempt
       return res.status(503).json({  // respond 503 Service Unavailable

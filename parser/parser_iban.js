@@ -2,8 +2,7 @@ const ibantools = require('ibantools');  // IBAN validation library
 
 
 
-function validate_ibans(ibans) {  // keep only checksum-valid IBANs, normalized
-    // Accepts an array of IBAN candidates, returns only valid ones (normalized)
+function validate_ibans(ibans) {  // keep only checksum-valid IBANs, normalized; accepts an array of IBAN candidates, returns only valid ones (normalized)
     const valid_ibans = [];  // accumulator for valid IBANs
     for (const candidate of ibans) {  // check each candidate string
         const normalized_iban = candidate.toUpperCase().replace(/\s/g, '');  // uppercase and strip whitespace
@@ -25,30 +24,21 @@ function parser_iban(text) {  // extract valid IBANs from arbitrary text
     const upper = text.toUpperCase();  // uppercase once for all strategies
     const candidates = [];  // collected IBAN candidate strings
 
-    // Strategy 1: per-line matching. OCR text carries garbage on adjacent lines
-    // that fuses with the IBAN once newlines are stripped \u2014 matching each line
-    // on its own keeps the IBAN clean.
-    for (const line of upper.split(/[\r\n]+/)) {  // process each line separately
+    for (const line of upper.split(/[\r\n]+/)) {  // process each line separately; strategy 1: per-line matching. OCR text carries garbage on adjacent lines that fuses with the IBAN once newlines are stripped \u2014 matching each line on its own keeps the IBAN clean.
         const clean = line.replace(FORMATTING_RE, '');  // strip whitespace/dashes/asterisks from the line
         candidates.push(...(clean.match(IBAN_RE) || []));  // add any IBAN matches from this line
     }  // end per-line loop
 
-    // Strategy 2: fully joined text, for IBANs split across lines.
-    const joined = upper.replace(FORMATTING_RE, '');  // whole text with all formatting stripped
+    const joined = upper.replace(FORMATTING_RE, '');  // whole text with all formatting stripped; strategy 2: fully joined text, for IBANs split across lines.
     candidates.push(...(joined.match(IBAN_RE) || []));  // add IBAN matches from the joined text
 
-    // Strategy 3: SA sliding window on the joined text. When garbage digits sit
-    // directly before/after an IBAN, the greedy regex grabs an over-long match
-    // that fails validation \u2014 taking exactly SA + 22 chars at every SA
-    // occurrence recovers the real IBAN.
-    let idx = -1;  // search cursor for 'SA' occurrences
+    let idx = -1;  // search cursor for 'SA' occurrences; strategy 3: SA sliding window on the joined text. When garbage digits sit directly before/after an IBAN, the greedy regex grabs an over-long match that fails validation \u2014 taking exactly SA + 22 chars at every SA occurrence recovers the real IBAN.
     while ((idx = joined.indexOf('SA', idx + 1)) !== -1) {  // find each 'SA' start position
         const window = joined.substr(idx, 24);  // take SA + 22 chars (Saudi IBAN length)
         if (window.length === 24) candidates.push(window);  // keep only full-length windows
     }  // end sliding-window loop
 
-    // Strategy 4: bare digit runs with no country code \u2014 prefix with 'SA'.
-    if (candidates.length === 0) {  // only if nothing matched so far
+    if (candidates.length === 0) {  // only if nothing matched so far; strategy 4: bare digit runs with no country code \u2014 prefix with 'SA'.
         const alphanumeric_only = joined.replace(/[^A-Z0-9]/g, '');  // keep letters and digits only
         if (/^\d/.test(alphanumeric_only) && alphanumeric_only.length > 0) {  // starts with a digit (no country code)
             candidates.push(...(('SA' + alphanumeric_only).match(IBAN_RE) || []));  // prefix 'SA' then match IBANs

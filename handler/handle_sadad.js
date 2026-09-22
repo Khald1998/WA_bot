@@ -35,10 +35,7 @@ async function handle_sadad(sadads, body, mid, serialized) {  // handle SADAD bi
             log_action('HANDLE_SADAD', `mid: ${mid}, count: ${sadads.length}`);  // log the message id and bill count
             const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');  // build a Riyadh (+03:00) ISO timestamp
             await Promise.all(sadads.map(({ sadad_number, sadad_type }) => {  // upsert every parsed bill in parallel
-                // ID is derived from the bill number ALONE (not the message id) so the
-                // same bill re-posted in different messages maps to ONE row — a bill
-                // already reported to the bank is never emailed again.
-                const id = crypto.createHash('sha256').update('sadad:' + sadad_number).digest('hex');  // derive a stable row id from the bill number
+                const id = crypto.createHash('sha256').update('sadad:' + sadad_number).digest('hex');  // derive a stable row id from the bill number; ID is derived from the bill number ALONE (not the message id) so the same bill re-posted in different messages maps to ONE row — a bill already reported to the bank is never emailed again.
                 return add_or_update_sadad({  // upsert the SADAD bill row
                     id,  // stable primary key
                     FPG_logs_id: mid,  // source message id

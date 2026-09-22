@@ -2,24 +2,10 @@ const qrcode = require('qrcode-terminal');  // renders the login QR code as ASCI
 const { Client, LocalAuth } = require('whatsapp-web.js');  // WhatsApp Web client class and local session auth
 const { log_action } = require('../debug/logger');  // structured logger used across the bot
 
-// --- Health watchdog tuning -------------------------------------------------
-// Why this exists: on 2026-05-18 WhatsApp Web entered a "Connecting / Retrying…"
-// loop (WAState=TIMEOUT) and the bot sat dead for 33h. whatsapp-web.js does NOT
-// emit `disconnected` for TIMEOUT (Client.js:823 treats it as an accepted state),
-// so the only reliable signal is to actively poll client.getState() and exit if
-// we're not CONNECTED for too long. systemd Restart=on-failure respawns us.
-const HEALTH_CHECK_INTERVAL_MS = 60_000;   // run one check every minute
+const HEALTH_CHECK_INTERVAL_MS = 60_000;   // run one check every minute; health watchdog tuning — why this exists: on 2026-05-18 WhatsApp Web entered a "Connecting / Retrying…" loop (WAState=TIMEOUT) and the bot sat dead for 33h. whatsapp-web.js does NOT emit `disconnected` for TIMEOUT (Client.js:823 treats it as an accepted state), so the only reliable signal is to actively poll client.getState() and exit if we're not CONNECTED for too long. systemd Restart=on-failure respawns us.
 const GET_STATE_TIMEOUT_MS     = 15_000;   // give up on a single check after 15s
 const MAX_CONSECUTIVE_FAILURES = 5;        // ~5 min of grace before we restart
-// Silent Store-detach guard: on 2026-08-13 the client stayed WAState=CONNECTED for
-// ~56h while the WA Web Store had silently detached, so `message_create` never fired
-// and getState() alone couldn't see it. If we're CONNECTED but have not received a
-// single message (across ALL chats — the account is in many active ones) for this
-// long, treat it as a silent detach and exit so systemd respawns a fresh session.
-// Threshold is set well above the observed natural overnight-quiet gap (~6-8h of no
-// traffic, 02:00-08:00 KSA) so a genuinely quiet night doesn't trigger a needless
-// restart (each restart re-inits the session and can drop inbound during ~30-60s).
-const MESSAGE_STALL_MS = 12 * 60 * 60_000; // 12h of total silence while CONNECTED
+const MESSAGE_STALL_MS = 12 * 60 * 60_000; // 12h of total silence while CONNECTED; silent Store-detach guard: on 2026-08-13 the client stayed WAState=CONNECTED for ~56h while the WA Web Store had silently detached, so `message_create` never fired and getState() alone couldn't see it. If we're CONNECTED but have not received a single message (across ALL chats — the account is in many active ones) for this long, treat it as a silent detach and exit so systemd respawns a fresh session. Threshold is set well above the observed natural overnight-quiet gap (~6-8h of no traffic, 02:00-08:00 KSA) so a genuinely quiet night doesn't trigger a needless restart (each restart re-inits the session and can drop inbound during ~30-60s).
 
 function create_whatsapp_client() {  // factory that builds and wires up the WhatsApp client
   const client = new Client({  // construct the whatsapp-web.js client
@@ -40,9 +26,7 @@ function create_whatsapp_client() {  // factory that builds and wires up the Wha
   });  // end Client construction
 
   let client_ready = false;  // tracks whether the client has emitted 'ready'
-  // Heartbeat for the silent Store-detach guard: bumped on every inbound/outbound
-  // message. Seeded at ready so a freshly-connected-but-quiet client isn't flagged.
-  let last_message_at = Date.now();  // timestamp of the most recent message seen
+  let last_message_at = Date.now();  // timestamp of the most recent message seen; heartbeat for the silent Store-detach guard: bumped on every inbound/outbound message. Seeded at ready so a freshly-connected-but-quiet client isn't flagged.
   client.on('message_create', () => { last_message_at = Date.now(); });  // refresh heartbeat on any message
 
   client.on('qr', (qr) => {  // fired when WhatsApp Web wants a QR login scan
@@ -57,14 +41,7 @@ function create_whatsapp_client() {  // factory that builds and wires up the Wha
     client_ready = true;  // mark the client ready for the watchdog and API
     last_message_at = Date.now();  // seed the heartbeat so a quiet start isn't flagged
 
-    // WhatsApp Web renamed MsgKey._serialized to `$1` (~July 2026). whatsapp-web.js
-    // 1.34.7 still reads `message.id._serialized` (e.g. inside downloadMedia, which
-    // passes it to Msg.get in the page) — now undefined, so EVERY image download
-    // fails with "r". Wrap WWebJS.getMessageModel so every serialized message id
-    // carries `_serialized` mirrored from `$1`. One runtime patch fixes downloadMedia
-    // and all other _serialized consumers uniformly, and lives in our code (survives
-    // whatsapp-web.js reinstalls). Verified on the live store before shipping.
-    try {  // guard the page-context patch in case evaluate throws
+    try {  // guard the page-context patch in case evaluate throws; WhatsApp Web renamed MsgKey._serialized to `$1` (~July 2026). whatsapp-web.js 1.34.7 still reads `message.id._serialized` (e.g. inside downloadMedia, which passes it to Msg.get in the page) — now undefined, so EVERY image download fails with "r". Wrap WWebJS.getMessageModel so every serialized message id carries `_serialized` mirrored from `$1`. One runtime patch fixes downloadMedia and all other _serialized consumers uniformly, and lives in our code (survives whatsapp-web.js reinstalls). Verified on the live store before shipping.
       await client.pupPage.evaluate(() => {  // run this function inside the WhatsApp Web page
         if (window.WWebJS && !window.WWebJS.__serializedShim) {  // only patch once, when WWebJS exists
           const orig = window.WWebJS.getMessageModel;  // keep a reference to the original getMessageModel
@@ -89,9 +66,7 @@ function create_whatsapp_client() {  // factory that builds and wires up the Wha
     console.error('⚠️ Auth failure:', msg);  // print the failure to stderr
   });  // end auth_failure handler
 
-  // Wraps client.getState() with a hard timeout so the watchdog can't itself
-  // wedge if puppeteer's CDP connection is unresponsive.
-  async function read_connection_state() {  // read WA state without hanging forever
+  async function read_connection_state() {  // read WA state without hanging forever; wraps client.getState() with a hard timeout so the watchdog can't itself wedge if puppeteer's CDP connection is unresponsive.
     const timeout = new Promise((_, reject) =>  // a promise that rejects when time runs out
       setTimeout(() => reject(new Error('getState timed out')), GET_STATE_TIMEOUT_MS)  // reject after the timeout window
     );  // end timeout promise
@@ -102,19 +77,15 @@ function create_whatsapp_client() {  // factory that builds and wires up the Wha
     }  // end try/catch
   }  // end read_connection_state
 
-  // Periodic health check. Counts consecutive non-CONNECTED reads and exits
-  // (so systemd respawns us) once we cross MAX_CONSECUTIVE_FAILURES.
-  let consecutive_failures = 0;  // running count of failed health checks
+  let consecutive_failures = 0;  // running count of failed health checks; periodic health check. Counts consecutive non-CONNECTED reads and exits (so systemd respawns us) once we cross MAX_CONSECUTIVE_FAILURES.
   setInterval(async () => {  // run the health check on a fixed interval
-    // Don't penalise startup — wait until the client has fully come up.
-    if (!client_ready) return;  // skip checks until the client is ready
+    if (!client_ready) return;  // skip checks until the client is ready; don't penalise startup — wait until the client has fully come up.
 
     const state = await read_connection_state();  // read the current WA connection state
 
     if (state === 'CONNECTED') {  // healthy: connection is up
       consecutive_failures = 0;  // reset the failure streak
-      // Silent Store-detach guard: CONNECTED but no messages for too long.
-      const stall_ms = Date.now() - last_message_at;  // how long since the last message
+      const stall_ms = Date.now() - last_message_at;  // how long since the last message; silent Store-detach guard: CONNECTED but no messages for too long.
       if (stall_ms > MESSAGE_STALL_MS) {  // exceeded the silence threshold
         log_action('CLIENT_MESSAGE_STALL_EXIT',  // log the silent-detach exit
           `CONNECTED but no message for ${Math.round(stall_ms / 60_000)}min`);  // include minutes of silence

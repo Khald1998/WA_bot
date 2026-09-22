@@ -1,7 +1,4 @@
-// services/message_listener_service.js
-// This module attaches a listener to the WhatsApp client for incoming messages.
-
-const { log_action } = require('../debug/logger');  // pull in the structured action logger
+const { log_action } = require('../debug/logger');  // pull in the structured action logger; module attaches a listener to the whatsapp client for incoming messages
 const { handle_group_message } = require('./PFG_bussiness_logic');  // pull in the group-message business-logic handler
 
 function attach_message_listener(client) {  // wire up the incoming-message listener on the WA client

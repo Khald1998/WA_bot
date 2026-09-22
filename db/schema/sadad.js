@@ -1,6 +1,3 @@
-// db/schema/sadad.js
-// Defines the SQLite schema for storing SADAD bill payment information
-
 const sadad = `
 CREATE TABLE IF NOT EXISTS sadad (
     id TEXT PRIMARY KEY NOT NULL,
@@ -12,6 +9,6 @@ CREATE TABLE IF NOT EXISTS sadad (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;                                                                 // end the SADAD table schema SQL string
+`;                                                                 // end the SADAD table schema SQL string; defines the sqlite schema for storing sadad bill payment information
 
 module.exports = sadad;                                            // export the SADAD schema SQL

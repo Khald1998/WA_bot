@@ -1,7 +1,5 @@
-// Builds the flat row object for FPG_logs from a whatsapp-web.js Message.
-// Also resolves the sender's phone number from the client (best-effort: null on failure).
 const { log_action } = require('../debug/logger');  // structured action logger
-async function parser_wa_message(client, message) {  // parse a WA message into a flat DB row
+async function parser_wa_message(client, message) {  // parse a WA message into a flat DB row; builds the flat row object for FPG_logs from a whatsapp-web.js Message; also resolves the sender's phone number from the client (best-effort: null on failure)
     try {  // guard the whole parser against errors
         log_action('PARSER_WA_MESSAGE', `mid: ${message.id['$1']}`);  // log entry with the message id
 
@@ -16,9 +14,7 @@ async function parser_wa_message(client, message) {  // parse a WA message into 
             console.error('Error resolving sender phone:', phone_err);  // print the phone-resolution error
         }  // end phone try/catch
 
-        // Serialized id of the message this one replies to (null if not a reply).
-        // Lets a code-reply be linked back to the quoted bill message later.
-        let quoted_msg_id = null;  // default the quoted-message id to null
+        let quoted_msg_id = null;  // default the quoted-message id to null; serialized id of the message this one replies to (null if not a reply); lets a code-reply be linked back to the quoted bill message later
         if (message.hasQuotedMsg) {  // only if this message quotes another
             try {  // guard the quoted-message lookup
                 const quoted = await message.getQuotedMessage();  // fetch the quoted message

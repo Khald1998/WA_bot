@@ -1,11 +1,4 @@
-// Sends the "unreported SADAD" email: emails every is_reported=0 sadad, then
-// marks the emailed records reported.
-//
-// Sends are serialized (one at a time) so two near-simultaneous triggers can't
-// both read the same unreported sadad before either marks it reported — which
-// would email the same sadad to the bank twice.
-
-const email_service = require('./email_service');  // load the email-sending service
+const email_service = require('./email_service');  // load the email-sending service; module sends the "unreported SADAD" email: emails every is_reported=0 sadad then marks the emailed records reported; sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported sadad before either marks it reported — which would email the same sadad to the bank twice
 const { log_action } = require('../debug/logger');  // load the action logger
 const get_unreported_sadads = require('../getters/get_unreported_sadads');  // getter for unreported SADAD rows
 const get_sadads_by_time = require('../getters/get_sadads_by_time');  // getter for SADAD rows within a time range
@@ -44,8 +37,7 @@ function build_body(records) {  // build the plain-text and HTML email bodies
   return { text: text_lines.join('\n'), html };  // return joined text body and HTML body
 }  // end build_body
 
-// Mutex: each call waits for the previous to finish before taking the slot.
-let queue = Promise.resolve();  // mutex chain tail, initially resolved
+let queue = Promise.resolve();  // mutex chain tail, initially resolved; each call waits for the previous to finish before taking the slot
 async function send_unreported_sadad_email(to, cc, subject) {  // send the unreported-SADAD email
   const previous = queue;  // capture the current tail of the mutex chain
   let release;  // will hold this call's release function
@@ -63,9 +55,7 @@ async function send_unreported_sadad_email(to, cc, subject) {  // send the unrep
 
     const { text, html } = build_body(records);  // build the email bodies
 
-    // Attachment = every SADAD spotted today (KSA) as "<bill>,<type>," per line —
-    // a running daily list, mirroring the IBAN email's .txt attachment.
-    const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);  // now shifted to KSA time (UTC+3)
+    const ksa_now = new Date(Date.now() + 3 * 3600 * 1000);  // now shifted to KSA time (UTC+3); attachment = every SADAD spotted today (KSA) as "<bill>,<type>," per line — a running daily list, mirroring the IBAN email's .txt attachment
     const y = ksa_now.getUTCFullYear();  // KSA year
     const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');  // KSA month, zero-padded
     const d = String(ksa_now.getUTCDate()).padStart(2, '0');  // KSA day, zero-padded
@@ -82,8 +72,7 @@ async function send_unreported_sadad_email(to, cc, subject) {  // send the unrep
 
     const subject_with_count = `${subject} (${records.length})`;  // append the record count to the subject
 
-    // Archive the exact attachment bytes before sending (audit trail).
-    archive_attachment(file_name, txt_content, to, cc, records.length, 'SADAD');  // archive the attachment bytes
+    archive_attachment(file_name, txt_content, to, cc, records.length, 'SADAD');  // archive the exact attachment bytes before sending (audit trail)
 
     await email_service(to, cc, subject_with_count, text, html, file_name, txt_content);  // send the email with attachment
 

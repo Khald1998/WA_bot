@@ -1,6 +1,3 @@
-// db/utility/insert_message.js
-// Utility for inserting a message into the database
-
 const path = require('path');  // Node path helpers for building file paths
 const sqlite3 = require('sqlite3').verbose();  // sqlite3 driver in verbose mode
 const db_path = path.join(__dirname, '../../FPG.db');  // absolute path to the FPG database file
@@ -8,10 +5,9 @@ const db = new sqlite3.Database(db_path);  // open a connection to the FPG datab
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s on a locked db before erroring
 const FPG_logs = require('../schema/FPG_logs');  // load the FPG_logs table-creation SQL
 
-// Ensure table exists
-db.run(FPG_logs);  // create the FPG_logs table if it is missing
+db.run(FPG_logs);  // ensure table exists — create the FPG_logs table if it is missing
 
-function insert_message(message_obj) {  // insert one message row into FPG_logs
+function insert_message(message_obj) {  // insert one message row into FPG_logs — utility for inserting a message into the database
     const { log_action } = require('../../debug/logger');  // pull in the audit logger
     return new Promise((resolve, reject) => {  // wrap the async insert in a promise
         log_action('DB_INSERT_ATTEMPT', `mid: ${message_obj.mid}`);  // log the insert attempt with its mid

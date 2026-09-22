@@ -1,7 +1,4 @@
-// OCR an image via the Python RapidOCR engine (which also writes OCR_content) and
-// return its text, so the caller can feed it straight into the same parser_iban /
-// handle_iban path used for a normal message body.
-const { spawn } = require('child_process');         // import spawn to run the OCR subprocess
+const { spawn } = require('child_process');         // import spawn to run the OCR subprocess; module OCRs an image via the Python RapidOCR engine (which also writes OCR_content) and returns its text, so the caller can feed it straight into the same parser_iban / handle_iban path used for a normal message body
 const path = require('path');                       // load the path-join helper
 const sqlite3 = require('sqlite3');                 // load the sqlite3 driver
 const { log_action } = require('../debug/logger');  // import the action logger helper

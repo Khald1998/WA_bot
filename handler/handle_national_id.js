@@ -35,10 +35,7 @@ async function handle_national_id(national_ids, body, mid, serialized) {  // sto
             log_action('HANDLE_NATIONAL_ID', `mid: ${mid}, count: ${national_ids.length}`);  // log the handling event
             const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');  // Riyadh-time (+03:00) ISO timestamp
             await Promise.all(national_ids.map(national_id_number => {  // upsert every national ID concurrently
-                // ID from the national-id alone (not the message id) so the same
-                // value re-posted in different messages maps to ONE row — a
-                // reported national-id is never emailed again.
-                const id = crypto.createHash('sha256').update('nid:' + national_id_number).digest('hex');  // deterministic id from the national-id value
+                const id = crypto.createHash('sha256').update('nid:' + national_id_number).digest('hex');  // deterministic id from the national-id value; id from the national-id alone (not the message id) so the same value re-posted in different messages maps to ONE row — a reported national-id is never emailed again.
                 return add_or_update_national_id({  // upsert this national-id row
                     id,  // primary key
                     FPG_logs_id: mid,  // link to the source log message

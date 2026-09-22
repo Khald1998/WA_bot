@@ -5,8 +5,7 @@ const { log_action } = require('../debug/logger');  // structured logger used ac
 module.exports = (client, get_client_ready) => {  // export a factory taking the client and readiness getter
   const router = express.Router();  // create a fresh Express router
 
-  // GET /groups - Return a list of group names
-  router.get('/groups', async (req, res) => {  // handle GET /groups requests
+  router.get('/groups', async (req, res) => {  // GET /groups - return a list of group names; handle GET /groups requests
     if (!get_client_ready()) {  // bail out if the WhatsApp client isn't ready
       log_action('API_GROUPS_ATTEMPT', 'Client not ready');  // log the premature attempt
       return res.status(503).json({  // respond 503 Service Unavailable with a JSON body

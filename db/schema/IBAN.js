@@ -1,6 +1,3 @@
-// db/schema/IBAN.js
-// Defines the SQLite schema for storing IBAN (International Bank Account Number) information
-
 const IBAN = `
 CREATE TABLE IF NOT EXISTS IBAN (
     id TEXT PRIMARY KEY NOT NULL,
@@ -11,6 +8,6 @@ CREATE TABLE IF NOT EXISTS IBAN (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;  // end IBAN CREATE TABLE statement text
+`;  // defines the sqlite schema for storing iban (international bank account number) information; end IBAN CREATE TABLE statement text
 
 module.exports = IBAN;  // export the schema string

@@ -1,17 +1,15 @@
 #!/bin/bash
-# Validate chats, collect evidence, then email IBAN CSV
 
-LOG=/root/whatsapp-bot/cron.log
+LOG=/root/whatsapp-bot/cron.log  # cron log file for all output; this script validates chats, collects evidence, then emails the IBAN CSV
 
-LABEL="IBAN"
-START_TIME="1970-01-01T00:00:00.000Z"
-END_TIME="9999-12-31T23:59:59.999Z"
-SUBJECT="${LABEL} CSV Export"
-TEXT_BODY="${LABEL} Export\nPeriod: ${START_TIME} to ${END_TIME}"
-HTML_BODY="<h3>${LABEL} Export</h3><p><strong>Period:</strong> ${START_TIME} to ${END_TIME}</p>"
+LABEL="IBAN"  # dataset label used in the subject and body text
+START_TIME="1970-01-01T00:00:00.000Z"  # lower time bound: include records from the epoch onward
+END_TIME="9999-12-31T23:59:59.999Z"  # upper time bound: effectively no end limit
+SUBJECT="${LABEL} CSV Export"  # email subject line
+TEXT_BODY="${LABEL} Export\nPeriod: ${START_TIME} to ${END_TIME}"  # plain-text email body
+HTML_BODY="<h3>${LABEL} Export</h3><p><strong>Period:</strong> ${START_TIME} to ${END_TIME}</p>"  # HTML email body
 
-#curl -sS -X POST http://localhost:3000/validate-chat-completeness >> "$LOG" 2>&1
-curl -sS -X POST http://localhost:3000/collect-evidence >> "$LOG" 2>&1
+curl -sS -X POST http://localhost:3000/collect-evidence >> "$LOG" 2>&1  # collect-evidence step; the validate step `curl -sS -X POST http://localhost:3000/validate-chat-completeness >> "$LOG" 2>&1` is intentionally disabled
 curl -sS -X POST http://localhost:3000/email-csv-iban \
   -H "Content-Type: application/json" \
   -d "{
@@ -29,4 +27,4 @@ curl -sS -X POST http://localhost:3000/email-csv-iban \
     ],
     \"text_body\": \"${TEXT_BODY}\",
     \"html_body\": \"${HTML_BODY}\"
-  }" >> "$LOG" 2>&1
+  }" >> "$LOG" 2>&1  # POST the JSON payload above to /email-csv-iban; append output to the log

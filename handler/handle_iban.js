@@ -35,10 +35,7 @@ async function handle_iban(ibans, body, mid, serialized) {  // store IBANs and f
             log_action('HANDLE_IBAN', `mid: ${mid}, count: ${ibans.length}`);  // log the handling event
             const timestamp = new Date(Date.now() + 3 * 3600 * 1000).toISOString().replace('Z', '+03:00');  // Riyadh-time (+03:00) ISO timestamp
             await Promise.all(ibans.map(iban_number => {  // upsert every IBAN concurrently
-                // ID from the IBAN alone (not the message id) so the same IBAN
-                // re-posted in different messages maps to ONE row — a reported
-                // IBAN is never emailed to the bank again.
-                const id = crypto.createHash('sha256').update('iban:' + iban_number).digest('hex');  // deterministic id from the IBAN value
+                const id = crypto.createHash('sha256').update('iban:' + iban_number).digest('hex');  // deterministic id from the IBAN value — ID from the IBAN alone (not the message id) so the same IBAN re-posted in different messages maps to ONE row — a reported IBAN is never emailed to the bank again.
                 return add_or_update_IBAN({  // upsert this IBAN row
                     id,  // primary key
                     FPG_logs_id: mid,  // link to the source log message

@@ -1,12 +1,9 @@
-// db/utility/add_or_update_phone.js
-// Function to add or update phone records in the database
-
 const sqlite3 = require('sqlite3').verbose();  // load the sqlite3 driver in verbose mode
 const path = require('path');  // load the path helper for building file paths
 const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s when the db is locked
 
-function add_or_update_phone({ id, FPG_logs_id, phone_number, original_text, created_at, updated_at }) {  // upsert a phone record
+function add_or_update_phone({ id, FPG_logs_id, phone_number, original_text, created_at, updated_at }) {  // upsert a phone record — function to add or update phone records in the database
     const query = `
         INSERT INTO phone (id, FPG_logs_id, phone_number, original_text, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)

@@ -1,12 +1,9 @@
-// db/utility/mark_sadads_as_reported.js
-// Function to mark SADAD records as reported (is_reported=1)
-
 const sqlite3 = require('sqlite3').verbose();  // load the sqlite3 driver in verbose mode
 const path = require('path');  // load the path helper for building file paths
 const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s when the db is locked
 
-function mark_sadads_as_reported(sadad_ids) {  // mark the given SADAD ids as reported
+function mark_sadads_as_reported(sadad_ids) {  // mark the given SADAD ids as reported (is_reported=1)
     return new Promise((resolve, reject) => {  // wrap the update in a promise
         if (!sadad_ids || sadad_ids.length === 0) {  // when no ids were supplied
             resolve({ changes: 0 });  // resolve immediately with zero changes

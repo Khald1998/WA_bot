@@ -1,12 +1,4 @@
-// Sends the "unreported IBAN" email: emails every is_reported=0 IBAN, attaches
-// today's IBANs as a .txt, then marks the emailed records reported. Called
-// directly from the message listener (handle_iban).
-//
-// Sends are serialized (one at a time) so two near-simultaneous triggers can't
-// both read the same unreported IBAN before either marks it reported — which
-// would email the same IBAN to the bank twice.
-
-const email_service = require('./email_service');  // email sender that delivers the message + attachment
+const email_service = require('./email_service');  // email sender that delivers the message + attachment. module: sends the "unreported IBAN" email: emails every is_reported=0 IBAN, attaches today's IBANs as a .txt, then marks the emailed records reported. called directly from the message listener (handle_iban). sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported IBAN before either marks it reported — which would email the same IBAN to the bank twice
 const { log_action } = require('../debug/logger');  // structured action logger
 const get_unreported_ibans = require('../getters/get_unreported_IBANs');  // fetch IBANs with is_reported=0
 const get_ibans_by_time = require('../getters/get_ibans_by_time');  // fetch IBANs within a time range
@@ -43,8 +35,7 @@ function build_body(records) {  // build the text + html email bodies from recor
   return { text: text_lines.join('\n'), html };  // return joined text body and html body
 }  // end build_body
 
-// Mutex: each call waits for the previous to finish before taking the slot.
-let queue = Promise.resolve();  // mutex chain; starts already resolved
+let queue = Promise.resolve();  // mutex chain; starts already resolved — mutex: each call waits for the previous to finish before taking the slot
 async function send_unreported_iban_email(to, cc, subject) {  // send + mark unreported IBANs, serialized
   const previous = queue;  // capture the currently pending tail of the chain
   let release;  // will hold this call's resolve function
@@ -67,9 +58,7 @@ async function send_unreported_iban_email(to, cc, subject) {  // send + mark unr
     const m = String(ksa_now.getUTCMonth() + 1).padStart(2, '0');  // KSA month, zero-padded
     const d = String(ksa_now.getUTCDate()).padStart(2, '0');  // KSA day, zero-padded
 
-    // The attachment is a running daily list: every IBAN spotted today (KSA),
-    // reported or not, so the latest file is the complete day-so-far.
-    const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;  // KSA midnight start bound
+    const start_of_day = `${y}-${m}-${d}T00:00:00.000+03:00`;  // KSA midnight start bound; the attachment is a running daily list: every IBAN spotted today (KSA), reported or not, so the latest file is the complete day-so-far
     const end_of_day = `${y}-${m}-${d}T23:59:59.999+03:00`;  // KSA end-of-day bound
     const today_records = await get_ibans_by_time(start_of_day, end_of_day);  // all IBANs inserted today
     log_action('EMAIL_IBAN_RAW_TODAY_QUERY', `Found ${today_records.length} IBAN inserted today`);  // log today's count

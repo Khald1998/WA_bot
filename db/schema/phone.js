@@ -1,6 +1,3 @@
-// db/schema/phone.js
-// Defines the SQLite schema for storing captured phone numbers
-
 const phone = `
 CREATE TABLE IF NOT EXISTS phone (
     id TEXT PRIMARY KEY NOT NULL,
@@ -11,6 +8,6 @@ CREATE TABLE IF NOT EXISTS phone (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;  // end of the CREATE TABLE template literal for the phone table
+`;  // end of the CREATE TABLE template literal for the phone table; defines the sqlite schema for storing captured phone numbers
 
 module.exports = phone;  // export the phone-table DDL string

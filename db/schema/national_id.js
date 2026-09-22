@@ -1,6 +1,3 @@
-// db/schema/national_id.js
-// Defines the SQLite schema for storing National ID information
-
 const national_id = `
 CREATE TABLE IF NOT EXISTS national_id (
     id TEXT PRIMARY KEY NOT NULL,
@@ -11,6 +8,6 @@ CREATE TABLE IF NOT EXISTS national_id (
     updated_at TEXT NOT NULL,
     is_reported INTEGER DEFAULT 0
 );
-`;  // end table-creation SQL string
+`;  // end table-creation SQL string; defines the SQLite schema for storing National ID information
 
 module.exports = national_id;  // export the national_id table schema string
