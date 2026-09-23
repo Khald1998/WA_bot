@@ -416,69 +416,30 @@ const PLACEHOLDER_TYPE = '000';  // "biller unknown" code stored for a code-less
 
 const BILL_CONTEXT_RE = /رخص|مكتب\s*العمل|استقدام|فاتور|فواتير|مفوتر|سداد|تسدد|رسوم|تأمين|تامين|جوازات|أبشر|ابشر|[إا]يجار|مبلغ|ريال|مقيم|غرام|مخالف/;  // does the message read like an actual bill (gate for '000' placeholder); A code-less bill is only trusted enough to store as '000' when the message actually reads like a bill — this keeps bare phone numbers, reference numbers and filenames (e.g. TRANSACTION_BILLPAYMENT_123.pdf) out of the table. Covers the real code-less bills seen in the group: work permits (رخصة عمل / مكتب العمل / استقدام), and generic bill/amount wording (فاتورة / سداد / مبلغ / ريال / مفوتر / رسوم / تأمين / غرامة / إيجار / جوازات / أبشر / مقيم / مخالفة).
 
-function group_pos(match, group) {  // compute absolute text position of a captured group; Position of a captured group inside a full regex match (absolute in text).
-    return match.index + match[0].lastIndexOf(group);  // match start plus offset of the group within the match
-}  // end group_pos
-
-function nearest_type(pos, type_occs) {  // pick the biller code closest to a given bill position; The type code whose occurrence sits closest to a bill (by absolute distance). A message can carry several bills from different billers, each labeled with its own code before or after it — so per-bill nearest beats one global type.
-    if (type_occs.length === 0) return '';  // no codes seen -> empty type
-    let best = type_occs[0];  // start with the first code occurrence as the current best
-    for (const t of type_occs) {  // scan every code occurrence
-        if (Math.abs(t.pos - pos) < Math.abs(best.pos - pos)) best = t;  // keep the one nearest the bill
-    }  // end scan loop
-    return best.code;  // return the nearest code's value
-}  // end nearest_type
-
 function parser_sadad(text, from_sadad_group = false, allow_placeholder = true) {  // parse SADAD bills+codes from a message body
     if (typeof text !== 'string') return [];  // guard: only strings are parseable
-    if (!from_sadad_group && !text.includes('سداد') && !text.includes('مفوتر')) return [];  // outside SADAD group, need a SADAD keyword
-
-    const clean = text.replace(MENTION_RE, ' ');  // strip @mention IDs, leaving a space in their place; Drop @mentions so their numeric IDs can never be read as bills.
-
-    const type_occs = [];  // collect every detected biller-code occurrence; Type occurrences with positions: labeled codes plus bare known-type tokens (e.g. a standalone "153" above the bill).
-    for (const m of clean.matchAll(TYPE_RE)) {  // iterate label-anchored biller codes
-        type_occs.push({ code: m[1].padStart(3, '0'), pos: group_pos(m, m[1]) });  // record padded code and its text position
-    }  // end labeled-code loop
-    for (const m of clean.matchAll(STANDALONE_3DIGIT_RE)) {  // iterate bare 3-digit tokens
-        if (KNOWN_TYPES.has(m[0])) type_occs.push({ code: m[0], pos: m.index });  // keep only ones matching a known biller code
-    }  // end bare-token loop
-
-    const bill_occs = [];  // collect every detected bill-number occurrence; Bill occurrences with positions: labeled bills first; only if none are found (and we're in the SADAD group) fall back to bare digit runs.
-    for (const m of clean.matchAll(BILL_RE)) {  // iterate label-anchored bill numbers
-        bill_occs.push({ num: m[1], pos: group_pos(m, m[1]) });  // record bill number and its text position
-    }  // end labeled-bill loop
-    if (bill_occs.length === 0 && from_sadad_group) {  // no labeled bill and inside the SADAD group?
-        for (const m of clean.matchAll(BARE_BILL_RE)) {  // iterate unlabeled 8-16 digit runs
-            bill_occs.push({ num: m[0], pos: m.index });  // record the bare bill number and position
-        }  // end bare-bill loop
-    }  // end SADAD-group fallback
-
-    if (bill_occs.length === 0) return [];  // no bills found -> return nothing; No bill number => nothing to report. A real SADAD bill always carries both the number and the biller code in the same message, so a type without a bill is just chatter (e.g. an info note mentioning a biller) — skip it.
-
-    if (!from_sadad_group && type_occs.length === 0) return [];  // outside SADAD group with no code -> reject; Outside the SADAD group, require a detected type (stricter, as before).
-
-    const has_bill_context = allow_placeholder && from_sadad_group && BILL_CONTEXT_RE.test(clean);  // may a code-less bill use the '000' placeholder?; A code-less bill is stored as '000' (biller unknown) instead of being dropped — but only in the SADAD group, only when placeholders are allowed (typed text, not OCR), and only when the message reads like a bill.
-
-    const seen = new Set();  // track bill numbers already emitted (dedup)
-    const out = [];  // accumulate the result rows
-    for (const b of bill_occs) {  // walk each detected bill
-        if (seen.has(b.num)) continue;  // skip duplicate bill numbers
-        seen.add(b.num);  // mark this bill number as emitted
-        let sadad_type = nearest_type(b.pos, type_occs);  // find the biller code nearest this bill
-        if (sadad_type === '' && has_bill_context) sadad_type = PLACEHOLDER_TYPE;  // fall back to '000' when code-less but bill-like
-        out.push({ sadad_number: b.num, sadad_type });  // emit the bill number with its resolved type
-    }  // end per-bill loop
-    return out;  // return all parsed bills
+    if (!from_sadad_group && !text.includes('سداد') && !text.includes('مفوتر')) return [];  // outside the SADAD group, require a SADAD keyword before matching
+    const clean = text.replace(MENTION_RE, ' ');  // strip @mention IDs so their numeric LIDs can never be read as bills
+    const type_occs = [...clean.matchAll(TYPE_RE)].map(m => ({ code: m[1].padStart(3, '0'), pos: m.index + m[0].lastIndexOf(m[1]) }))  // label-anchored biller codes, padded, with absolute positions
+        .concat([...clean.matchAll(STANDALONE_3DIGIT_RE)].filter(m => KNOWN_TYPES.has(m[0])).map(m => ({ code: m[0], pos: m.index })));  // plus bare 3-digit tokens matching a known biller code
+    let bill_occs = [...clean.matchAll(BILL_RE)].map(m => ({ num: m[1], pos: m.index + m[0].lastIndexOf(m[1]) }));  // label-anchored bill numbers with absolute positions
+    if (!bill_occs.length && from_sadad_group) bill_occs = [...clean.matchAll(BARE_BILL_RE)].map(m => ({ num: m[0], pos: m.index }));  // in the SADAD group, fall back to bare 8-16 digit runs when no labeled bill exists
+    if (!bill_occs.length) return [];  // no bill number => nothing to report
+    if (!from_sadad_group && !type_occs.length) return [];  // outside the SADAD group, require a detected type
+    const has_bill_context = allow_placeholder && from_sadad_group && BILL_CONTEXT_RE.test(clean);  // may a code-less bill be stored as the '000' placeholder?
+    const seen = new Set();  // track bill numbers already emitted (dedup by first occurrence)
+    return bill_occs.filter(b => !seen.has(b.num) && seen.add(b.num)).map(b => ({  // one result row per distinct bill number, in first-seen order
+        sadad_number: b.num,  // the extracted bill number
+        sadad_type: (type_occs.length ? type_occs.reduce((a, t) => Math.abs(t.pos - b.pos) < Math.abs(a.pos - b.pos) ? t : a).code : '') || (has_bill_context ? PLACEHOLDER_TYPE : ''),  // biller code nearest this bill, else '000' when code-less but bill-like
+    }));  // end per-bill mapping
 }  // end parser_sadad
 
-function extract_sadad_code(text) {  // pull just a biller code out of text (for reply-linking); Extract just the biller code from text (no bill needed). Used for reply-based code linking: a reply like "لمفوتر 050" carries the code for the quoted bill. Prefers a labeled code (TYPE_RE); falls back to a bare known-type token.
+function extract_sadad_code(text) {  // pull just a biller code out of text (for reply-based code linking)
     if (typeof text !== 'string') return '';  // guard: only strings are parseable
     const clean = text.replace(MENTION_RE, ' ');  // strip @mention IDs first
     for (const m of clean.matchAll(TYPE_RE)) return m[1].padStart(3, '0');  // return the first label-anchored code, padded
-    for (const m of clean.matchAll(STANDALONE_3DIGIT_RE)) {  // otherwise scan bare 3-digit tokens
-        if (KNOWN_TYPES.has(m[0])) return m[0];  // return the first one matching a known biller code
-    }  // end bare-token scan
-    return '';  // no code found
+    const bare = [...clean.matchAll(STANDALONE_3DIGIT_RE)].find(m => KNOWN_TYPES.has(m[0]));  // otherwise the first bare token matching a known biller code
+    return bare ? bare[0] : '';  // that token, or empty when none found
 }  // end extract_sadad_code
 
 parser_sadad.extract_sadad_code = extract_sadad_code;  // expose the code extractor on the main function
