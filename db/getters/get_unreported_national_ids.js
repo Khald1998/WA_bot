@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();  // load sqlite3 driver in verbose mode
 const path = require('path');  // path helper for building the DB file path
-const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open the FPG database connection
+const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database connection
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s when the DB is locked
 
 function get_unreported_national_ids() {  // fetch all national_id rows not yet reported (is_reported=0)

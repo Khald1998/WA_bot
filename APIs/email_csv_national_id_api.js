@@ -3,7 +3,7 @@ const router = express.Router();  // create a new Express router instance
 const email_service = require('../services/email_service');  // load the email-sending service
 const { log_action } = require('../debug/logger');  // load the audit-log helper
 
-const get_national_ids_by_time = require('../getters/get_national_ids_by_time');  // load the query that fetches national IDs by time range
+const get_national_ids_by_time = require('../db/getters/get_national_ids_by_time');  // load the query that fetches national IDs by time range
 const generate_national_id_csv = require('../generate_report/generate_national_id_csv');  // load the national-ID CSV generator
 
 module.exports = () => {  // export a factory that builds and returns the router

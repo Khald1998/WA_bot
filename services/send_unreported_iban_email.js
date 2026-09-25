@@ -1,7 +1,7 @@
 const email_service = require('./email_service');  // email sender that delivers the message + attachment. module: sends the "unreported IBAN" email: emails every is_reported=0 IBAN, attaches today's IBANs as a .txt, then marks the emailed records reported. called directly from the message listener (handle_iban). sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported IBAN before either marks it reported — which would email the same IBAN to the bank twice
 const { log_action } = require('../debug/logger');  // structured action logger
-const get_unreported_ibans = require('../getters/get_unreported_IBANs');  // fetch IBANs with is_reported=0
-const get_ibans_by_time = require('../getters/get_ibans_by_time');  // fetch IBANs within a time range
+const get_unreported_ibans = require('../db/getters/get_unreported_IBANs');  // fetch IBANs with is_reported=0
+const get_ibans_by_time = require('../db/getters/get_ibans_by_time');  // fetch IBANs within a time range
 const generate_iban_txt = require('../generate_report/generate_iban_txt');  // render IBAN records into .txt text
 const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');  // flip records to is_reported=1
 const archive_attachment = require('./archive_attachment');  // save a copy of the sent attachment

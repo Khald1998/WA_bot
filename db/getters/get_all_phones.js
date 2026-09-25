@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();  // load sqlite3 in verbose mode f
 const path = require('path');  // load Node's path module for building the DB path
 
 function get_all_phones() {  // fetch every stored phone number from the DB
-  const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open the FPG SQLite database
+  const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG SQLite database
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s if the DB is locked instead of failing
   const query = `
     SELECT phone_number

@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();      // load sqlite3 with verbose 
 const path = require('path');      // load path helper for building the db file path
 
 function get_sadads_by_time(start_time, end_time) {      // fetch sadad rows created within a time window
-  const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));      // open the FPG SQLite database
+  const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));      // open the FPG SQLite database
 db.run('PRAGMA busy_timeout = 5000');      // wait up to 5s on a locked db instead of failing
   const query = `
     SELECT id, FPG_logs_id, sadad_number, sadad_type, original_text, created_at, updated_at

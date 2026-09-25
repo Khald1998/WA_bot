@@ -1,12 +1,8 @@
 const crypto = require('crypto');  // Node core crypto for hashing
-const sqlite3 = require('sqlite3').verbose();  // sqlite3 driver in verbose mode
-const path = require('path');  // Node path helper for building file paths
 const add_or_update_IBAN = require('../db/utility/add_or_update_IBAN');  // IBAN upsert helper
+const update_log_validity = require('../db/utility/update_log_validity');  // helper to set the is_valid_* flag on the FPG_logs row
 const send_unreported_iban_email = require('../services/send_unreported_iban_email');  // service that emails unreported IBANs
 const { log_action } = require('../debug/logger');  // structured action logger
-
-const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open the FPG database
-db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s when the db is locked
 
 const TO = [  // primary email recipients
   'Tbinessa@saib.com.sa',  // TO recipient
@@ -51,11 +47,7 @@ async function handle_iban(ibans, body, mid, serialized) {  // store IBANs and f
             );  // end catch handler
         }  // end IBAN-present block
 
-        await new Promise((resolve, reject) => {  // await the log-row update
-            db.run('UPDATE FPG_logs SET is_valid_iban = ? WHERE _serialized = ?',  // set the IBAN validity flag
-                [ibans.length > 0 ? 1 : 0, serialized],  // 1 if any IBAN found else 0, keyed by serialized id
-                err => err ? reject(err) : resolve());  // reject on error else resolve
-        });  // end promise executor
+        await update_log_validity('iban', ibans.length > 0 ? 1 : 0, serialized);  // set the IBAN validity flag on the log row
     } catch (err) {  // handle any thrown error
         log_action('HANDLE_IBAN_ERROR', `mid: ${mid}, error: ${err.message}`);  // log the failure
     }  // end catch

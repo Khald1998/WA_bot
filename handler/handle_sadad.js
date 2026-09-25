@@ -1,12 +1,8 @@
 const crypto = require('crypto');  // load Node crypto for hashing bill numbers
-const sqlite3 = require('sqlite3').verbose();  // load sqlite3 with verbose stack traces
-const path = require('path');  // load path helper for building the db location
 const add_or_update_sadad = require('../db/utility/add_or_update_sadad');  // import SADAD upsert helper
+const update_log_validity = require('../db/utility/update_log_validity');  // helper to set the is_valid_* flag on the FPG_logs row
 const send_unreported_sadad_email = require('../services/send_unreported_sadad_email');  // import the unreported-SADAD email sender
 const { log_action } = require('../debug/logger');  // import the structured action logger
-
-const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open the FPG database file
-db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s if the db is locked
 
 const TO = [  // primary recipients for the SADAD email
   'Tbinessa@saib.com.sa',  // recipient
@@ -52,11 +48,7 @@ async function handle_sadad(sadads, body, mid, serialized) {  // handle SADAD bi
             );  // end catch handler
         }  // end has-bills block
 
-        await new Promise((resolve, reject) => {  // wrap the log-flag update in a promise
-            db.run('UPDATE FPG_logs SET is_valid_sadad = ? WHERE _serialized = ?',  // mark whether this message had valid SADAD
-                [sadads.length > 0 ? 1 : 0, serialized],  // bind the flag value and the message serial
-                err => err ? reject(err) : resolve());  // reject on error, else resolve
-        });  // end update promise
+        await update_log_validity('sadad', sadads.length > 0 ? 1 : 0, serialized);  // mark whether this message had valid SADAD
     } catch (err) {  // catch any handler failure
         log_action('HANDLE_SADAD_ERROR', `mid: ${mid}, error: ${err.message}`);  // log the handler error
     }  // end try/catch

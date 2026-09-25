@@ -1,7 +1,7 @@
 const email_service = require('./email_service');  // load the email-sending service; module sends the "unreported SADAD" email: emails every is_reported=0 sadad then marks the emailed records reported; sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported sadad before either marks it reported — which would email the same sadad to the bank twice
 const { log_action } = require('../debug/logger');  // load the action logger
-const get_unreported_sadads = require('../getters/get_unreported_sadads');  // getter for unreported SADAD rows
-const get_sadads_by_time = require('../getters/get_sadads_by_time');  // getter for SADAD rows within a time range
+const get_unreported_sadads = require('../db/getters/get_unreported_sadads');  // getter for unreported SADAD rows
+const get_sadads_by_time = require('../db/getters/get_sadads_by_time');  // getter for SADAD rows within a time range
 const generate_sadad_txt = require('../generate_report/generate_sadad_txt');  // builds the SADAD .txt report
 const archive_attachment = require('./archive_attachment');  // archives the sent attachment for audit
 const mark_sadads_as_reported = require('../db/utility/mark_sadads_as_reported');  // flags SADAD rows as reported

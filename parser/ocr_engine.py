@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import sys, os, sqlite3, time  # stdlib imports; OCR-fills the OCR_content tracker for a list of image media_ids. OCR-ONLY: writes extracted text (or '' if none) keyed by media_id. Does NOT extract/insert IBANs and sends nothing. Idempotent via INSERT OR REPLACE.
+import sys, os, time  # stdlib imports; OCR-fills the OCR_content tracker for a list of image media_ids. OCR-ONLY: writes extracted text (or '' if none) keyed by media_id. Does NOT extract/insert IBANs and sends nothing. Idempotent via INSERT OR REPLACE.
 from rapidocr_onnxruntime import RapidOCR  # the RapidOCR (ONNX runtime) engine used to read text from images
 
 REPO = '/root/whatsapp-bot'  # absolute repo root, used to locate the DB and media folder
+sys.path.insert(0, os.path.join(REPO, 'db'))  # make the db/ Python DB helpers importable
+from ocr_content_writer import open_connection, save_ocr_content  # all DB access for the OCR pipeline lives in db/
 args = [a for a in sys.argv[1:] if a.strip()]  # non-empty CLI args; accept either media_ids directly (e.g. `worker.py <media_id> ...`, used by the bot on arrival) or a single listfile path (used for manual backlog runs).
 if len(args) == 1 and os.path.isfile(args[0]):  # a single arg that is an existing file means listfile mode
     mids = [l.strip() for l in open(args[0]) if l.strip()]  # read one media_id per non-blank line
@@ -12,8 +14,7 @@ if not mids:  # nothing to do when no media_ids were provided
     sys.exit(0)  # exit cleanly with no work
 
 engine = RapidOCR()  # construct the OCR engine once for the whole batch
-con = sqlite3.connect(REPO + '/FPG.db', timeout=60)  # open the shared FPG database with a 60s connect timeout
-con.execute('PRAGMA busy_timeout=60000')  # wait up to 60s on a locked DB before erroring
+con = open_connection()  # open the shared FPG database via the db/ helper
 
 done = 0  # count of images processed this run
 for mid in mids:  # process each requested media_id
@@ -26,8 +27,7 @@ for mid in mids:  # process each requested media_id
                 text = '\n'.join(r[1] for r in res)  # concatenate every detected text line
         except Exception:  # swallow any OCR failure
             pass  # leave text as '' for this media_id
-    con.execute('INSERT OR REPLACE INTO OCR_content(media_id, image_body) VALUES(?,?)', (mid, text))  # upsert the OCR text keyed by media_id
-    con.commit()  # persist each row immediately so partial runs still save progress
+    save_ocr_content(con, mid, text)  # upsert the OCR text via the db/ helper (commits immediately)
     done += 1  # tally this image as processed
 con.close()  # release the database handle
 print(time.strftime('%F %T'), 'ocr_engine: OCR-ed', done, 'images')  # emit a timestamped summary line

@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();  // sqlite3 driver in verbose mode
 const path = require('path');  // Node path helpers for building the db path
 
 function get_ibans_by_time(start_time, end_time) {  // fetch IBAN rows created within a time window
-  const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open a connection to the FPG database
+  const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open a connection to the FPG database
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s on a locked db before erroring
   const query = `
     SELECT id, FPG_logs_id, iban_number, original_text, created_at, updated_at

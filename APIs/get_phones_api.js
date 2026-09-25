@@ -1,7 +1,7 @@
 const express = require('express');                 // load the express framework
 const router = express.Router();                    // create a new express router
 const { log_action } = require('../debug/logger');  // import the action logger helper
-const get_phones_by_time = require('../getters/get_phones_by_time');  // import the phones-by-time getter
+const get_phones_by_time = require('../db/getters/get_phones_by_time');  // import the phones-by-time getter
 
 module.exports = () => {                             // export a router factory function
   router.get('/phones', async (req, res) => {        // register the GET /phones route

@@ -1,7 +1,7 @@
 
 const email_service = require('./email_service');                               // helper that actually sends the email; module sends the "unreported National ID" email: emails every is_reported=0 national_id, then marks the emailed records reported; sends are serialized (one at a time) so two near-simultaneous triggers can't both read the same unreported national_id before either marks it reported — which would email the same national_id to the bank twice
 const { log_action } = require('../debug/logger');                              // structured action logger
-const get_unreported_national_ids = require('../getters/get_unreported_national_ids');   // fetch is_reported=0 national IDs
+const get_unreported_national_ids = require('../db/getters/get_unreported_national_ids');   // fetch is_reported=0 national IDs
 const mark_national_ids_as_reported = require('../db/utility/mark_national_ids_as_reported');   // flag rows as reported
 
 const escape_html = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));   // HTML-escape a value for safe email markup

@@ -3,7 +3,7 @@ const router = express.Router();                                               /
 const email_service = require('../services/email_service');                    // load the email-sending service
 const { log_action } = require('../debug/logger');                             // pull in the action logger helper
 
-const get_sadads_by_time = require('../getters/get_sadads_by_time');           // load the SADAD time-range query
+const get_sadads_by_time = require('../db/getters/get_sadads_by_time');           // load the SADAD time-range query
 const generate_sadad_csv = require('../generate_report/generate_sadad_csv');   // load the SADAD CSV generator
 
 module.exports = () => {                                                       // export a factory that builds the router

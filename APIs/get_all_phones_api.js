@@ -1,7 +1,7 @@
 const express = require('express');  // load the Express web framework
 const router = express.Router();  // create a new Express router instance
 const { log_action } = require('../debug/logger');  // pull in the structured action logger
-const get_all_phones = require('../getters/get_all_phones');  // load the getter that reads all phone numbers
+const get_all_phones = require('../db/getters/get_all_phones');  // load the getter that reads all phone numbers
 
 module.exports = () => {  // export a factory that builds and returns the router
   router.get('/phones/all', async (req, res) => {  // handle GET /phones/all requests

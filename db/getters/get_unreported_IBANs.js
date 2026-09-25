@@ -1,8 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();  // load sqlite3 with verbose stack traces
 const path = require('path');  // load path helper for building the db location
-const db = new sqlite3.Database(path.join(__dirname, '../FPG.db'));  // open the FPG database file
+const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database file
 db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s if the db is locked
-const mark_ibans_as_reported = require('../db/utility/mark_ibans_as_reported');  // import helper to flag IBAN rows reported
+const mark_ibans_as_reported = require('../utility/mark_ibans_as_reported');  // import helper to flag IBAN rows reported
 
 function normalize_iban(iban) {  // define IBAN normalizer; normalize IBAN: remove spaces and uppercase. Return null for missing values.
     if (!iban || typeof iban !== 'string') return null;  // bail out when value is missing or not text
