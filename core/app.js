@@ -1,7 +1,6 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });  // load environment variables from the project .env
 
-// Initialize database and create tables if they don't exist
-require('../db/database');  // initialize the database and create tables
+require('../db/database');  // initialize the database and create tables if they don't exist
 
 const express = require('express');  // load the Express web framework
 const { create_whatsapp_client } = require('../services/whatsapp_client_service');  // load the WhatsApp client factory
@@ -15,22 +14,20 @@ const email_csv_national_id_api = require('../APIs/email_csv_national_id_api'); 
 const get_phones_api = require('../APIs/get_phones_api');  // load the phones API route
 const get_all_phones_api = require('../APIs/get_all_phones_api');  // load the all-phones API route
 const get_sadads_api = require('../APIs/get_sadads_api');  // load the SADAD listing API route
+const get_phone_lookup_api = require('../APIs/get_phone_lookup_api');  // load the phone lookup API route
 
 const app = express();  // create the Express application
 app.use(express.json());  // parse JSON request bodies
 
 
 
-// Initialize the WhatsApp client with local authentication (moved to service)
-const { client, get_client_ready } = create_whatsapp_client();  // build the WhatsApp client and readiness getter
+const { client, get_client_ready } = create_whatsapp_client();  // build the WhatsApp client with local authentication (moved to service) and readiness getter
 client.initialize();  // start the WhatsApp client session
 
-// Attach message listener
-attach_message_listener(client);  // wire the message listener to the client
+attach_message_listener(client);  // attach/wire the message listener to the client
 
 
-// Mount the API router (paths are defined inside the API module)
-log_action('SERVER_START', 'Mounting API router');  // log that API routes are being mounted
+log_action('SERVER_START', 'Mounting API router');  // mount the API router, paths are defined inside the API module — log that API routes are being mounted
 app.use(get_group_names_api(client, get_client_ready));  // mount the group-names route
 app.use(get_individual_chats_api(client, get_client_ready));  // mount the individual-chats route
 app.use(email_csv_iban_api());  // mount the IBAN CSV email route
@@ -39,6 +36,12 @@ app.use(email_csv_national_id_api());  // mount the national-ID CSV email route
 app.use(get_phones_api());  // mount the phones route
 app.use(get_all_phones_api());  // mount the all-phones route
 app.use(get_sadads_api());  // mount the SADAD listing route
+app.use(get_phone_lookup_api());  // mount the phone lookup route LAST so /phones/:number never shadows the static /phones and /phones/all
+
+app.use((err, req, res, next) => {  // JSON parse-error handler: return JSON, not Express's default HTML page, for a malformed request body
+  if (err && (err.type === 'entity.parse.failed' || err instanceof SyntaxError)) return res.status(400).json({ error: 'invalid JSON body' });  // malformed JSON body → 400 JSON, matching the other services
+  return next(err);  // defer any other error to the default handler
+});  // end JSON parse-error handler
 
 const port = process.env.PORT || 3000;  // resolve the listen port, default 3000
 app.listen(port, () => {  // start the HTTP server
