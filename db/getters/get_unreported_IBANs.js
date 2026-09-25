@@ -1,7 +1,4 @@
-const sqlite3 = require('sqlite3').verbose();  // load sqlite3 with verbose stack traces
-const path = require('path');  // load path helper for building the db location
-const db = new sqlite3.Database(path.join(__dirname, '../../FPG.db'));  // open the FPG database file
-db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s if the db is locked
+const { db } = require('../database');  // shared node:sqlite connection
 const mark_ibans_as_reported = require('../utility/mark_ibans_as_reported');  // import helper to flag IBAN rows reported
 
 function normalize_iban(iban) {  // define IBAN normalizer; normalize IBAN: remove spaces and uppercase. Return null for missing values.
@@ -17,16 +14,11 @@ function fetch_unreported_rows() {  // define query for unreported IBAN rows; fe
         ORDER BY created_at ASC
     `;  // SQL selecting unreported IBANs oldest first
 
-    return new Promise((resolve, reject) => {  // wrap the async query in a promise
-        db.all(query, [], (err, rows) => {  // run the SELECT with no bind params
-            if (err) return reject(err);  // reject the promise on a db error
-            resolve(rows);  // resolve with the fetched rows
-        });  // end db.all callback
-    });  // end promise executor
+    return db.prepare(query).all();  // run the SELECT with no bind params and return the rows synchronously
 }  // end fetch_unreported_rows
 
 async function get_unreported_ibans() {  // define the dedup + fetch entry point; return deduplicated rows (keep first occurrence), mark duplicates as reported
-    const rows = await fetch_unreported_rows();  // load all unreported rows from the db
+    const rows = fetch_unreported_rows();  // load all unreported rows from the db
 
     const seen = new Set();  // track normalized IBANs already kept
     const keep = [];  // rows to return (first occurrence of each IBAN)

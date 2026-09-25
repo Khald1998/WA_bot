@@ -1,22 +1,16 @@
-const path = require('path');  // Node path helpers for building file paths
-const sqlite3 = require('sqlite3').verbose();  // sqlite3 driver in verbose mode
-const db_path = path.join(__dirname, '../../FPG.db');  // absolute path to the FPG database file
-const db = new sqlite3.Database(db_path);  // open a connection to the FPG database
-db.run('PRAGMA busy_timeout = 5000');  // wait up to 5s on a locked db before erroring
-const FPG_logs = require('../schema/FPG_logs');  // load the FPG_logs table-creation SQL
+const { db, bind } = require('../database');  // shared node:sqlite connection + bind coercion helper
 
-db.run(FPG_logs);  // ensure table exists — create the FPG_logs table if it is missing
+const stmt = db.prepare(`
+    INSERT OR REPLACE INTO FPG_logs (
+        mid, _serialized, from_me, remote, participant, body, type, notify_name, is_new_msg, kic_notified, recv_fresh, is_from_template, is_ads_media, is_sent_cag_poll_creation, is_vcard_over_mms_document, is_forwarded, is_dynamic_reply_buttons_msg, is_carousel_card, is_video_call, is_call_link, is_md_history_msg, is_avatar, non_jid_mentions, media_key, has_media, timestamp, device_type, forwarding_score, is_status, is_starred, broadcast, has_quoted_msg, duration, location, is_gif, is_ephemeral, phone_number, media_id, quoted_msg_id, is_valid_iban, is_valid_phone, is_valid_national_id, is_valid_sadad
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
+`);  // prepared ONCE at module load — reused for every insert (last 4 columns always NULL)
 
 function insert_message(message_obj) {  // insert one message row into FPG_logs — utility for inserting a message into the database
     const { log_action } = require('../../debug/logger');  // pull in the audit logger
-    return new Promise((resolve, reject) => {  // wrap the async insert in a promise
-        log_action('DB_INSERT_ATTEMPT', `mid: ${message_obj.mid}`);  // log the insert attempt with its mid
-        const stmt = db.prepare(`
-            INSERT OR REPLACE INTO FPG_logs (
-                mid, _serialized, from_me, remote, participant, body, type, notify_name, is_new_msg, kic_notified, recv_fresh, is_from_template, is_ads_media, is_sent_cag_poll_creation, is_vcard_over_mms_document, is_forwarded, is_dynamic_reply_buttons_msg, is_carousel_card, is_video_call, is_call_link, is_md_history_msg, is_avatar, non_jid_mentions, media_key, has_media, timestamp, device_type, forwarding_score, is_status, is_starred, broadcast, has_quoted_msg, duration, location, is_gif, is_ephemeral, phone_number, media_id, quoted_msg_id, is_valid_iban, is_valid_phone, is_valid_national_id, is_valid_sadad
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
-        `);  // finish building the prepared INSERT statement
-        stmt.run([  // run the insert binding the values below in column order
+    log_action('DB_INSERT_ATTEMPT', `mid: ${message_obj.mid}`);  // log the insert attempt with its mid
+    try {  // attempt the synchronous insert
+        stmt.run(...[  // run the insert binding the values below in column order
             message_obj.mid,  // bind mid (message id)
             message_obj._serialized,  // bind serialized message id
             message_obj.from_me,  // bind from_me flag
@@ -56,16 +50,12 @@ function insert_message(message_obj) {  // insert one message row into FPG_logs 
             message_obj.phone_number,  // bind parsed phone number
             message_obj.media_id,  // bind associated media id
             message_obj.quoted_msg_id  // bind quoted message id (last bound value)
-        ], function(err) {  // callback fired after the insert completes
-            stmt.finalize();  // release the prepared statement
-            if (err) {  // if the insert failed
-                log_action('DB_INSERT_ERROR', err.message);  // log the db error
-                return reject(err);  // reject the promise with the error
-            }  // end the error branch
-            log_action('DB_INSERT_SUCCESS', `mid: ${message_obj.mid}`);  // log the successful insert
-            resolve();  // resolve the promise on success
-        });  // end stmt.run callback
-    });  // end promise executor
+        ].map(bind));  // coerce EVERY param — node:sqlite rejects raw booleans/undefined
+        log_action('DB_INSERT_SUCCESS', `mid: ${message_obj.mid}`);  // log the successful insert
+    } catch (err) {  // if the insert failed
+        log_action('DB_INSERT_ERROR', err.message);  // log the db error
+        throw err;  // propagate the error to the caller
+    }  // end try/catch
 }  // end insert_message function
 
 module.exports = insert_message;  // export the insert function

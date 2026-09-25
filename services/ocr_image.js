@@ -9,7 +9,7 @@ function ocr_image(media_id) {                       // define the OCR-by-media-
             stdio: 'ignore',                         // discard the subprocess stdio
         });                                          // end spawn options
         p.on('exit', () => {                         // when the OCR engine finishes
-            get_ocr_content(media_id).then(resolve);  // read the OCR text it wrote and resolve with it ('' when missing/error)
+            resolve(get_ocr_content(media_id));  // read the OCR text it wrote and resolve with it ('' when missing/error)
         });                                          // end exit handler
         p.on('error', (err) => { log_action('OCR_IMAGE_ERROR', err.message); resolve(''); });  // on spawn error, log and resolve empty
     });                                              // end promise executor
